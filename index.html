@@ -589,7 +589,7 @@
           <div class="flex-1 overflow-hidden px-7 pb-10 flex flex-col justify-center">
 
             <div class="ob-step active" data-step="0">
-              <p class="text-xs font-mono text-noise-grey mb-4">01 / 09</p>
+              <p class="text-xs font-mono text-noise-grey mb-4">01 / 08</p>
               <h2 class="text-[30px] font-light leading-tight tracking-tight">你好</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">你来到这里，最想做什么？</p>
               <div class="mt-10 space-y-3">
@@ -600,31 +600,7 @@
             </div>
 
             <div class="ob-step" data-step="1">
-              <p class="text-xs font-mono text-noise-grey mb-4">02 / 09</p>
-              <h2 class="text-[28px] font-light leading-tight tracking-tight">导入你的日常</h2>
-              <p class="text-charcoal/55 mt-3 leading-relaxed">可选。从常用 App 一键带入，降低填写成本。</p>
-              <div class="mt-10 space-y-3">
-                <button id="musicImport" class="w-full rounded-2xl glass p-4 flex items-center gap-3 transition hover:bg-white/80">
-                  <span class="text-2xl">🎵</span>
-                  <div class="flex-1 text-left">
-                    <p class="font-medium text-[15px]">网易云 / QQ 音乐</p>
-                    <p class="text-[12px] text-charcoal/50">导入最近常听</p>
-                  </div>
-                  <span id="musicStatus" class="text-xs font-mono text-noise-grey">未同步</span>
-                </button>
-                <button class="w-full rounded-2xl glass p-4 flex items-center gap-3 opacity-60">
-                  <span class="text-2xl">📷</span>
-                  <div class="flex-1 text-left">
-                    <p class="font-medium text-[15px]">相册</p>
-                    <p class="text-[12px] text-charcoal/50">选一张代表照</p>
-                  </div>
-                  <span class="text-xs font-mono text-noise-grey">可选</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="ob-step" data-step="2">
-              <p class="text-xs font-mono text-noise-grey mb-4">03 / 09</p>
+              <p class="text-xs font-mono text-noise-grey mb-4">02 / 08</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">现在的心情</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">选一种最接近的状态。</p>
               <div class="mt-10 flex flex-wrap gap-2">
@@ -642,10 +618,10 @@
               <input id="obBusy" class="w-full h-12 rounded-2xl glass px-4 text-[15px] bg-transparent" placeholder="例如：在准备马拉松比赛" />
             </div>
 
-            <div class="ob-step" data-step="3">
-              <p class="text-xs font-mono text-noise-grey mb-4">04 / 09</p>
-              <h2 class="text-[28px] font-light leading-tight tracking-tight">选 3 个标签</h2>
-              <p class="text-charcoal/55 mt-3 leading-relaxed">你最近在关注什么？</p>
+            <div class="ob-step" data-step="2">
+              <p class="text-xs font-mono text-noise-grey mb-4">03 / 08</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">选 3-5 个标签</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">你最近在关注什么？选至少 3 个，最多 5 个。</p>
               <div class="mt-8">
                 <p class="text-[13px] text-charcoal/60 mb-3">音乐 / 风格</p>
                 <div class="flex flex-wrap gap-2 mb-5" id="tagMusic"></div>
@@ -654,10 +630,11 @@
                 <p class="text-[13px] text-charcoal/60 mb-3">品牌 / 风格</p>
                 <div class="flex flex-wrap gap-2" id="tagBrand"></div>
               </div>
+              <p id="tagHint" class="text-xs text-noise-grey mt-4 text-center">已选 0 / 5</p>
             </div>
 
-            <div class="ob-step" data-step="4">
-              <p class="text-xs font-mono text-noise-grey mb-4">05 / 09</p>
+            <div class="ob-step" data-step="3">
+              <p class="text-xs font-mono text-noise-grey mb-4">04 / 08</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">上传代表照</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">可选。这张照片只出现在你的时光胶囊里。</p>
               <div class="mt-10">
@@ -668,8 +645,8 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="5">
-              <p class="text-xs font-mono text-noise-grey mb-4">06 / 09</p>
+            <div class="ob-step" data-step="4">
+              <p class="text-xs font-mono text-noise-grey mb-4">05 / 08</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">取个昵称</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">2-12 个字符，会在镜像对话中展示。</p>
               <div class="mt-10">
@@ -678,8 +655,8 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="6">
-              <p class="text-xs font-mono text-noise-grey mb-4">07 / 09</p>
+            <div class="ob-step" data-step="5">
+              <p class="text-xs font-mono text-noise-grey mb-4">06 / 08</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">给未来留封信</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">一年后的今天，寄回给你。可选。</p>
               <div class="mt-10">
@@ -687,8 +664,8 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="7">
-              <p class="text-xs font-mono text-noise-grey mb-4">08 / 09</p>
+            <div class="ob-step" data-step="6">
+              <p class="text-xs font-mono text-noise-grey mb-4">07 / 08</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">第一次提问</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">有什么问题想问一个和你完全不一样的人？</p>
               <div class="mt-8">
@@ -699,7 +676,7 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="8">
+            <div class="ob-step" data-step="7">
               <div class="text-center">
                 <div class="mx-auto w-16 h-16 rounded-full aurora-bg grid place-items-center text-3xl shadow-soft">✦</div>
                 <h2 class="text-[28px] font-light leading-tight mt-8">准备好了</h2>
@@ -1823,14 +1800,17 @@
         t.classList.remove('active');
         selectedObTags = selectedObTags.filter(x => x !== tag);
       } else {
-        if (selectedObTags.length >= 3) return;
+        if (selectedObTags.length >= 5) { showToast('最多选择 5 个标签'); return; }
         t.classList.add('active');
         selectedObTags.push(tag);
       }
+      $('#tagHint').textContent = `已选 ${selectedObTags.length} / 5`;
+      $('#tagHint').classList.toggle('text-red-500', selectedObTags.length > 0 && selectedObTags.length < 3);
+      $('#tagHint').classList.toggle('text-noise-grey', selectedObTags.length === 0 || selectedObTags.length >= 3);
     });
 
     let obStep = 0;
-    const total = 9;
+    const total = 8;
     const obSteps = $$('.ob-step');
     function renderOb() {
       obSteps.forEach(s => s.classList.toggle('active', +s.dataset.step === obStep));
@@ -1859,12 +1839,15 @@
       openSheet('updateArchiveSheet');
     }
     $('#obNext').addEventListener('click', () => {
-      if (obStep === 5) {
+      if (obStep === 4) {
         const nick = $('#obNickname').value.trim();
         if (!nick) { showToast('请输入昵称'); return; }
         if (nick.length < 2 || nick.length > 12) { showToast('昵称需 2-12 个字符'); return; }
       }
-      if (obStep === 7) {
+      if (obStep === 2 && selectedObTags.length > 0 && selectedObTags.length < 3) {
+        showToast('请至少选择 3 个标签'); return;
+      }
+      if (obStep === 6) {
         const q = $('#obQuestion').value.trim();
         if (q.length < 15) { showToast('问题至少 15 字'); return; }
         state.questions.unshift({ text: q, status: '审核中', date: '刚刚' });
@@ -1888,11 +1871,6 @@
       b.classList.add('active');
     }));
 
-    $('#musicImport').addEventListener('click', () => {
-      $('#musicStatus').textContent = '已同步';
-      $('#musicStatus').classList.add('text-charcoal');
-      showToast('已同步最近常听');
-    });
     $('#photoUpload').addEventListener('click', () => showToast('照片上传为演示占位'));
     $$('.example-q').forEach(el => el.addEventListener('click', () => {
       $('#obQuestion').value = el.textContent.replace(/[“”]/g, '');
