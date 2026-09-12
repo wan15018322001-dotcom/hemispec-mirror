@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>半镜 Hemispec</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            mint: '#D4E8E0',
+            'mint-hover': '#B8D8CC',
+            lilac: '#C8C5E6',
+            'lilac-hover': '#B0ACD8',
+            charcoal: '#4A4A4A',
+            'noise-grey': '#9E9E9E',
+            'bg-primary': '#FAFCFB',
+            'bg-secondary': '#F0F4F2',
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --mint: #D4E8E0;
+      --lilac: #C8C5E6;
+      --charcoal: #4A4A4A;
+      --noise: #9E9E9E;
+      --white: #FFFFFF;
+      --aurora: linear-gradient(135deg, #D4E8E0 0%, #E6E6FA 100%);
+      --glass: rgba(255, 255, 255, 0.62);
+      --glass-border: 1px solid rgba(74, 74, 74, 0.15);
+      --shadow-soft: 0 4px 20px -6px rgba(200, 197, 230, 0.45);
+      --shadow-medium: 0 12px 32px -10px rgba(200, 197, 230, 0.5);
+    }
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html, body { font-family: 'Inter', 'PingFang SC', sans-serif; color: var(--charcoal); background: #FAFCFB; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+    .aurora-bg { background: var(--aurora); }
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: var(--glass-border);
+    }
+    .grain::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.035;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 128px 128px;
+    }
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    @keyframes gentle-drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(12px, -18px) scale(1.03); } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse-soft { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+    @keyframes aurora-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .drift { animation: gentle-drift 18s ease-in-out infinite; }
+    .fade-in { animation: fade-in 0.45s ease both; }
+    .pulse-soft { animation: pulse-soft 2.2s ease-in-out infinite; }
+    .flow-aurora {
+      background: linear-gradient(135deg, #D4E8E0, #E6E6FA, #C8C5E6, #D4E8E0);
+      background-size: 300% 300%;
+      animation: aurora-flow 8s ease-in-out infinite;
+    }
+    .sheet {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      max-height: 92%;
+      overflow-y: auto;
+      border-radius: 28px 28px 0 0;
+      transform: translateY(105%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .sheet.open { transform: translateY(0); }
+    .scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(74, 74, 74, 0.22);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .scrim.show { opacity: 1; pointer-events: auto; }
+    .timeline-line::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 10px;
+      bottom: 10px;
+      width: 1px;
+      background: linear-gradient(180deg, var(--mint), var(--lilac));
+      opacity: 0.5;
+    }
+    .star-icon { transition: color 120ms ease, transform 120ms ease; }
+    .star-icon.active { color: var(--lilac); transform: scale(1.12); }
+    .archive-node { cursor: pointer; }
+    .archive-node:hover .archive-title { color: var(--charcoal); }
+    .btn-primary {
+      background: var(--charcoal);
+      color: var(--white);
+      padding: 12px 28px;
+      border-radius: 999px;
+      font-weight: 500;
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-medium); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-soft {
+      background: rgba(255,255,255,0.55);
+      border: var(--glass-border);
+      color: var(--charcoal);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 500;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .btn-soft:hover { background: rgba(255,255,255,0.8); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid rgba(74, 74, 74, 0.18);
+      background: rgba(255,255,255,0.45);
+      transition: all 150ms ease;
+    }
+    .tag.active { background: var(--charcoal); color: white; border-color: var(--charcoal); }
+    input:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(212, 232, 224, 0.7); }
+    .login-input:focus { box-shadow: none; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+    .shake { animation: shake 0.35s ease; }
+    .register-panel {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      top: 100%;
+      background: #FAFCFB;
+      border-radius: 28px 28px 0 0;
+      transition: top 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+    }
+    .register-panel.open { top: 10%; }
+    .ob-step { display: none; }
+    .ob-step.active { display: block; animation: fade-in 0.4s ease both; }
+  </style>
+</head>
+<body class="min-h-screen" style="background: linear-gradient(180deg, #FAFCFB 0%, #F5F7F6 50%, #EFEEF5 100%);">
+
+  <div class="fixed inset-0 overflow-hidden pointer-events-none grain"></div>
+  <div class="fixed -top-40 -right-40 w-[520px] h-[520px] rounded-full bg-mint/35 blur-[120px] drift"></div>
+  <div class="fixed -bottom-32 -left-32 w-[440px] h-[440px] rounded-full bg-lilac/35 blur-[120px] drift" style="animation-delay: -9s;"></div>
+
+  <div class="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-10">
+
+    <header class="w-full max-w-4xl mb-10 text-center fade-in">
+      <p class="text-xs font-mono text-noise-grey tracking-[0.12em] mb-3">Hemispec / 半镜 · PRD v0.3</p>
+      <h1 class="text-4xl md:text-5xl font-light tracking-tight" style="letter-spacing: -0.03em;">半镜 Hemispec</h1>
+      <p class="text-charcoal/55 mt-3 text-base max-w-md mx-auto leading-relaxed">把不同阶段的自己存档，再和完全不同的人交换一次问答。</p>
+    </header>
+
+    <main class="relative fade-in" style="animation-delay: 0.1s;">
+      <div class="w-[390px] max-w-full h-[844px] max-h-[86vh] rounded-[3rem] glass shadow-medium ring-1 ring-white overflow-hidden relative flex flex-col">
+
+        <!-- Splash -->
+        <div id="splash" class="absolute inset-0 z-40 flex flex-col items-center justify-center aurora-bg grain">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-[140%] aspect-square rounded-full bg-white/25 blur-3xl drift"></div>
+          </div>
+          <div class="relative z-10 text-center px-10">
+            <p class="text-xs font-mono text-charcoal/45 tracking-[0.25em] mb-8">HEMISPEC</p>
+            <h1 class="text-6xl font-bold tracking-wide" style="letter-spacing: 0.08em; font-family: '香萃打字机体', 'XiangCuiTypewriter', 'PingFang SC', 'Microsoft YaHei', sans-serif;">半镜</h1>
+            <div class="w-16 h-px bg-charcoal/20 mx-auto mt-8"></div>
+            <p class="text-[15px] text-charcoal/50 mt-8 leading-relaxed">一半记忆，一半回声</p>
+            <button id="enterBtn" class="btn-primary mt-12 w-[180px] h-12 text-base">进入</button>
+          </div>
+        </div>
+
+        <!-- Login -->
+        <div id="login" class="absolute inset-0 z-[35] hidden flex-col bg-bg-primary overflow-hidden">
+          <div class="px-6 pt-7 pb-2 flex items-center justify-between shrink-0 relative z-10">
+            <button id="loginBack" class="w-9 h-9 rounded-full glass grid place-items-center text-charcoal text-lg transition hover:bg-white/80">←</button>
+            <p class="text-[15px] font-medium tracking-tight">半镜 Hemispec</p>
+            <div class="w-9"></div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto hide-scroll px-7 pt-6 pb-8 flex flex-col">
+            <div class="mb-8">
+              <h2 class="text-[30px] font-light leading-tight tracking-tight">欢迎回来</h2>
+              <p class="text-charcoal/55 mt-2 leading-relaxed">思维把上一段自己，轻轻推了回来。</p>
+            </div>
+
+            <div class="space-y-5">
+              <div>
+                <label class="block text-[13px] text-charcoal/70 mb-2">手机号</label>
+                <input id="phone" type="tel" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="请输入手机号" maxlength="11" />
+              </div>
+
+              <div>
+                <label class="block text-[13px] text-charcoal/70 mb-2">验证码</label>
+                <div class="flex gap-3">
+                  <input id="code" type="tel" class="login-input flex-1 h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="6位验证码" maxlength="6" />
+                  <button id="getCode" class="shrink-0 h-11 px-4 rounded-[10px] glass text-[13px] font-medium transition hover:bg-white/80">获取验证码</button>
+                </div>
+                <p id="codeError" class="text-xs text-red-500 mt-2 hidden">验证码错误，请重试</p>
+              </div>
+            </div>
+
+            <div class="mt-8 space-y-3">
+              <button id="loginAction" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">登录</button>
+              <div class="relative flex items-center justify-center py-2">
+                <div class="absolute inset-x-0 h-px bg-charcoal/10"></div>
+                <span class="relative px-3 bg-bg-primary text-xs text-noise-grey">或</span>
+              </div>
+              <button id="wechatLogin" class="w-full h-12 rounded-full bg-[#07C160] text-white font-medium text-[15px] transition hover:shadow-medium flex items-center justify-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-white/25 grid place-items-center text-xs">微</span>
+                微信一键登录
+              </button>
+              <button id="switchToPhone" class="hidden w-full h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">切换手机号登录</button>
+            </div>
+
+            <div class="mt-auto pt-8">
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input id="agree" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
+                <span class="text-xs text-charcoal/50 leading-relaxed">登录即代表同意《用户协议》与《隐私政策》</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Register panel -->
+          <div id="registerPanel" class="register-panel px-7 pt-6 pb-8">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-xs text-noise-grey text-center">检测到您是第一次来到 半镜 Hemispec</p>
+            <h3 class="text-[24px] font-light tracking-tight mt-1 text-center">创建账号</h3>
+            <input type="hidden" id="regPhone" />
+
+            <div class="flex-1 overflow-y-auto hide-scroll mt-6 space-y-4">
+              <div>
+                <p class="text-[13px] text-charcoal/60 mb-2">昵称 <span class="text-noise-grey">*</span></p>
+                <input id="regNickname" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="2-12 个字符" maxlength="12" />
+                <p id="regNicknameHint" class="text-xs text-noise-grey mt-1">支持中文、英文、数字</p>
+              </div>
+              <div>
+                <p class="text-[13px] text-charcoal/60 mb-2">性别</p>
+                <div class="flex flex-wrap gap-2" id="regGender">
+                  <button class="tag reg-gender" data-val="保密">保密</button>
+                  <button class="tag reg-gender" data-val="男">男</button>
+                  <button class="tag reg-gender" data-val="女">女</button>
+                </div>
+              </div>
+              <div>
+                <p class="text-[13px] text-charcoal/60 mb-2">年龄段</p>
+                <div class="flex flex-wrap gap-2" id="regAge">
+                  <button class="tag reg-age" data-val="保密">保密</button>
+                  <button class="tag reg-age" data-val="18-25">18-25</button>
+                  <button class="tag reg-age" data-val="26-35">26-35</button>
+                  <button class="tag reg-age" data-val="36-45">36-45</button>
+                  <button class="tag reg-age" data-val="46+">46+</button>
+                </div>
+              </div>
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input id="regAgree" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
+                <span class="text-xs text-charcoal/50 leading-relaxed">已阅读并同意《隐私政策》（注销后需重新授权）</span>
+              </label>
+            </div>
+
+            <button id="regSubmit" class="mt-4 w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">创建账号</button>
+          </div>
+        </div>
+
+        <!-- Onboarding -->
+        <div id="onboarding" class="absolute inset-0 z-30 hidden flex-col bg-bg-primary">
+          <div class="px-7 pt-7 flex items-center justify-between">
+            <span class="text-xs font-mono text-noise-grey tracking-widest">半镜</span>
+            <button id="obSkip" class="text-xs text-noise-grey hover:text-charcoal transition">跳过</button>
+          </div>
+          <div class="flex-1 overflow-hidden px-7 pb-10 flex flex-col justify-center">
+
+            <div class="ob-step active" data-step="0">
+              <p class="text-xs font-mono text-noise-grey mb-4">01 / 09</p>
+              <h2 class="text-[30px] font-light leading-tight tracking-tight">欢迎来到半镜</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">你来到这里，最想做什么？</p>
+              <div class="mt-10 space-y-3">
+                <button class="mot w-full text-left rounded-2xl glass p-4 transition hover:bg-white/80" data-mot="A"><p class="font-medium text-[15px]">记录自己</p><p class="text-[13px] text-charcoal/50 mt-1">把不同阶段的自己存档</p></button>
+                <button class="mot w-full text-left rounded-2xl glass p-4 transition hover:bg-white/80" data-mot="B"><p class="font-medium text-[15px]">听见不一样的声音</p><p class="text-[13px] text-charcoal/50 mt-1">和完全不同的人交换问题</p></button>
+                <button class="mot w-full text-left rounded-2xl glass p-4 transition hover:bg-white/80" data-mot="C"><p class="font-medium text-[15px]">两者都想</p><p class="text-[13px] text-charcoal/50 mt-1">存档自己也认识他人</p></button>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="1">
+              <p class="text-xs font-mono text-noise-grey mb-4">02 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">导入你的日常</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">可选。从常用 App 一键带入，降低填写成本。</p>
+              <div class="mt-10 space-y-3">
+                <button id="musicImport" class="w-full rounded-2xl glass p-4 flex items-center gap-3 transition hover:bg-white/80">
+                  <span class="text-2xl">🎵</span>
+                  <div class="flex-1 text-left">
+                    <p class="font-medium text-[15px]">网易云 / QQ 音乐</p>
+                    <p class="text-[12px] text-charcoal/50">导入最近常听</p>
+                  </div>
+                  <span id="musicStatus" class="text-xs font-mono text-noise-grey">未同步</span>
+                </button>
+                <button class="w-full rounded-2xl glass p-4 flex items-center gap-3 opacity-60">
+                  <span class="text-2xl">📷</span>
+                  <div class="flex-1 text-left">
+                    <p class="font-medium text-[15px]">相册</p>
+                    <p class="text-[12px] text-charcoal/50">选一张代表照</p>
+                  </div>
+                  <span class="text-xs font-mono text-noise-grey">可选</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="2">
+              <p class="text-xs font-mono text-noise-grey mb-4">03 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">现在的心情</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">选一种最接近的状态。</p>
+              <div class="mt-10 flex flex-wrap gap-2">
+                <button class="mood tag" data-mood="平静">平静</button>
+                <button class="mood tag" data-mood="焦虑">焦虑</button>
+                <button class="mood tag" data-mood="兴奋">兴奋</button>
+                <button class="mood tag" data-mood="疲惫">疲惫</button>
+                <button class="mood tag" data-mood="迷茫">迷茫</button>
+                <button class="mood tag" data-mood="期待">期待</button>
+                <button class="mood tag" data-mood="矛盾">矛盾</button>
+                <button class="mood tag" data-mood="孤独">孤独</button>
+                <button class="mood tag" data-mood="开心">开心</button>
+              </div>
+              <p class="text-[13px] text-charcoal/60 mb-3 mt-8">在忙的事</p>
+              <input id="obBusy" class="w-full h-12 rounded-2xl glass px-4 text-[15px] bg-transparent" placeholder="例如：在准备马拉松比赛" />
+            </div>
+
+            <div class="ob-step" data-step="3">
+              <p class="text-xs font-mono text-noise-grey mb-4">04 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">选 3 个标签</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">你最近在关注什么？</p>
+              <div class="mt-8">
+                <p class="text-[13px] text-charcoal/60 mb-3">音乐 / 风格</p>
+                <div class="flex flex-wrap gap-2 mb-5" id="tagMusic"></div>
+                <p class="text-[13px] text-charcoal/60 mb-3">影视 / 类型</p>
+                <div class="flex flex-wrap gap-2 mb-5" id="tagFilm"></div>
+                <p class="text-[13px] text-charcoal/60 mb-3">品牌 / 风格</p>
+                <div class="flex flex-wrap gap-2" id="tagBrand"></div>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="4">
+              <p class="text-xs font-mono text-noise-grey mb-4">05 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">上传代表照</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">可选。这张照片只出现在你的时光胶囊里。</p>
+              <div class="mt-10">
+                <div id="photoUpload" class="w-full h-40 rounded-2xl glass border-2 border-dashed border-charcoal/20 flex flex-col items-center justify-center text-charcoal/40 cursor-pointer transition hover:bg-white/50">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
+                  <p class="text-sm mt-2">点击选择照片</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="5">
+              <p class="text-xs font-mono text-noise-grey mb-4">06 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">取个昵称</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">2-12 个字符，会在镜像对话中展示。</p>
+              <div class="mt-10">
+                <input id="obNickname" class="w-full h-14 rounded-2xl glass px-4 text-[18px] bg-transparent text-center font-medium" placeholder="例如：小林" maxlength="12" />
+                <p id="nicknameHint" class="text-xs text-noise-grey mt-3 text-center">支持中文、英文、数字</p>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="6">
+              <p class="text-xs font-mono text-noise-grey mb-4">07 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">给未来留封信</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">一年后的今天，寄回给你。可选。</p>
+              <div class="mt-10">
+                <textarea id="obLetter" class="w-full h-40 rounded-2xl glass p-4 text-[15px] bg-transparent resize-none" placeholder="写给一年后的自己…"></textarea>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="7">
+              <p class="text-xs font-mono text-noise-grey mb-4">08 / 09</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">第一次提问</h2>
+              <p class="text-charcoal/55 mt-3 leading-relaxed">有什么问题想问一个和你完全不一样的人？</p>
+              <div class="mt-8">
+                <div class="rounded-2xl glass p-3 mb-3 text-xs text-charcoal/60 cursor-pointer hover:bg-white/70 transition example-q">“我最近准备跳槽但很焦虑，作为一个和我完全不同的人，你会怎么看这种焦虑？”</div>
+                <div class="rounded-2xl glass p-3 mb-3 text-xs text-charcoal/60 cursor-pointer hover:bg-white/70 transition example-q">“如果你完全不担心收入，你会选择现在的工作还是完全不同的职业？”</div>
+                <textarea id="obQuestion" class="w-full h-32 rounded-2xl glass p-4 text-[15px] bg-transparent resize-none" placeholder="输入你的问题（15–200 字）"></textarea>
+                <p class="text-xs text-noise-grey mt-2">问题需为开放式，避免事实查询或隐私信息。</p>
+              </div>
+            </div>
+
+            <div class="ob-step" data-step="8">
+              <div class="text-center">
+                <div class="mx-auto w-16 h-16 rounded-full aurora-bg grid place-items-center text-3xl shadow-soft">✦</div>
+                <h2 class="text-[28px] font-light leading-tight mt-8">准备好了</h2>
+                <p class="text-charcoal/55 mt-3 leading-relaxed">第一份档案已建好，<br/>问题正在审核中。</p>
+                <p class="text-xs text-noise-grey mt-2">预计 2 小时内完成审核并匹配</p>
+              </div>
+            </div>
+          </div>
+          <div class="px-7 pb-8">
+            <div class="flex items-center gap-3">
+              <button id="obBack" class="h-12 w-14 rounded-full glass font-medium hidden transition hover:bg-white/80">←</button>
+              <button id="obNext" class="flex-1 h-12 rounded-full bg-charcoal text-white font-medium text-[15px] transition hover:shadow-medium">下一步</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="px-8 pt-4 pb-2 flex items-center justify-between text-[13px] font-medium text-charcoal z-20">
+          <span>9:41</span>
+          <div class="flex items-center gap-1.5">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 2.5c2 0 3.8.8 5.2 2.2l-1 1A7 7 0 0 0 8 4 7 7 0 0 0 3.8 5.7l-1-1A9 9 0 0 1 8 2.5Z" fill="currentColor"/><path d="M8 6c1 0 2 .4 2.8 1.2l-1 1A3 3 0 0 0 8 7c-.7 0-1.3.3-1.8.8l-1-1A4 4 0 0 1 8 6Z" fill="currentColor"/><circle cx="8" cy="10.2" r="1.2" fill="currentColor"/></svg>
+            <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><rect x="23.5" y="4" width="2" height="5" rx="1" fill="currentColor" opacity=".4"/></svg>
+          </div>
+        </div>
+
+        <!-- App header -->
+        <div class="px-6 pt-2 pb-3 flex items-center justify-between z-20">
+          <div class="flex items-center gap-3">
+            <div><p class="text-[15px] font-medium leading-none tracking-tight" style="font-family: Consolas, 'JetBrains Mono', monospace;"><span style="color: #92C1B0;">半镜</span> <span style="color: #C7B1E3;">Hemispec</span></p></div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="msgBell" class="relative w-10 h-10 rounded-full glass grid place-items-center text-charcoal transition hover:bg-white/80">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 5a6 6 0 0 1 6 6v2a4 4 0 0 0 1.2 2.8l.8.8H4l.8-.8A4 4 0 0 0 6 13v-2a6 6 0 0 1 6-6Z" stroke="currentColor" stroke-width="1.6"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <span class="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-lilac ring-2 ring-white"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable content -->
+        <div id="scroller" class="flex-1 overflow-y-auto hide-scroll relative px-6 pt-2 pb-28">
+
+          <!-- Time Capsule -->
+          <section id="screen-capsule" class="screen space-y-6">
+
+            <div class="rounded-[24px] flow-aurora p-6 relative overflow-hidden shadow-soft border border-charcoal/10">
+              <div class="absolute inset-0 grain"></div>
+              <div class="relative z-10">
+                <p class="text-xs text-charcoal/50 mb-1">9 月 12 日，上海</p>
+                <h2 class="text-[26px] font-light leading-tight tracking-tight">下午好，<span id="greetingName">小林</span></h2>
+                <p class="text-sm text-charcoal/60 mt-2 leading-relaxed">思维把你的上一段自己，轻轻推了回来。</p>
+                <div class="mt-5 flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-xl bg-white/70 grid place-items-center text-charcoal font-medium ring-1 ring-white" id="capsuleAvatar">林</div>
+                  <div>
+                    <p class="text-sm font-medium"><span id="capsuleName">小林</span> · 第 <span id="archiveCount">7</span> 份档案</p>
+                    <p class="text-xs text-charcoal/50">平静 · 3 天前更新</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 档案风格摘要 -->
+            <div class="rounded-[24px] glass px-5 py-3" id="styleSummaryCard">
+              <p class="text-[10px] text-noise-grey mb-1">档案风格摘要</p>
+              <p class="text-[13px] leading-relaxed text-charcoal/80" id="styleSummaryText">一个心情趋于平静、近期关注极简风格、听歌偏向民谣/独立音乐的人。</p>
+            </div>
+
+            <!-- 并排对比 -->
+            <div>
+              <div class="flex items-baseline justify-between mb-3">
+                <h3 class="text-lg font-medium tracking-tight">自己变了多少…</h3>
+                <span id="compareHint" class="text-xs text-noise-grey">已选 2 / 2</span>
+              </div>
+              <div id="archChips" class="flex gap-2 overflow-x-auto hide-scroll -mx-1 px-1 pb-2"></div>
+              <div id="comparePanel" class="grid grid-cols-2 gap-3 mt-2"></div>
+              <p id="compareDiff" class="mt-3 text-[13px] text-charcoal/60 leading-relaxed"></p>
+            </div>
+
+            <!-- 未来信 -->
+            <div class="rounded-[24px] glass p-6 relative overflow-hidden" style="background: linear-gradient(135deg, rgba(255,255,255,0.7), rgba(200,197,230,0.25));">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-xs text-noise-grey mb-1">写给未来</p>
+                  <h3 class="text-xl font-light tracking-tight">一年后的自己</h3>
+                </div>
+                <div class="text-right">
+                  <p class="text-3xl font-light text-charcoal">365</p>
+                  <p class="text-[10px] text-noise-grey">天后送达</p>
+                </div>
+              </div>
+              <p class="text-[15px] text-charcoal/70 mt-4 leading-relaxed italic" id="futureLetterPreview">“希望那时的你，已经不再怕被拒绝。”</p>
+            </div>
+
+            <!-- 时间线 -->
+            <div>
+              <h3 class="text-lg font-medium tracking-tight mb-4">走过的路…</h3>
+              <div class="relative pl-1 timeline-line space-y-6" id="timeline"></div>
+            </div>
+
+            <!-- 我的提问 -->
+            <div>
+              <div class="flex items-baseline justify-between mb-3">
+                <h3 class="text-lg font-medium tracking-tight">我的提问</h3>
+                <button id="viewMyQuestions" class="text-xs text-charcoal/60 hover:text-charcoal transition">查看</button>
+              </div>
+              <div id="myQuestions" class="space-y-3"></div>
+            </div>
+
+            <!-- 问题接力 -->
+            <div class="rounded-[24px] glass p-6" style="background: linear-gradient(135deg, rgba(212,232,224,0.35), rgba(255,255,255,0.65));">
+              <p class="text-xs text-noise-grey mb-2">来自 3 月的你</p>
+              <p class="text-[16px] leading-relaxed">“3 月的你还在焦虑上岸，现在回头看，那场考试还重要吗？”</p>
+              <p id="relayAnswer" class="hidden mt-4 pt-4 border-t border-charcoal/10 text-[15px] text-charcoal/70 leading-relaxed"></p>
+              <button id="relay" class="btn-soft mt-5 text-sm">现在的你回答</button>
+            </div>
+          </section>
+
+          <!-- Mirror Talk -->
+          <section id="screen-mirror" class="screen hidden space-y-6">
+
+            <div>
+              <h2 class="text-[26px] font-light tracking-tight">「镜像对话」</h2>
+              <p class="text-sm text-charcoal/55 mt-1 leading-relaxed">每天回答一个来自“和你完全不一样的人”的提问。</p>
+            </div>
+
+            <!-- 今日问题 -->
+            <div id="todayCard" class="rounded-[24px] glass p-6 shadow-soft">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-xs text-noise-grey">今日问题</p>
+                <span id="qStateChip" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/60 text-charcoal ring-1 ring-white">待回答</span>
+              </div>
+              <div class="flex items-center gap-3 mb-4">
+                <div id="qAvatar" class="w-10 h-10 rounded-full aurora-bg grid place-items-center text-charcoal font-medium ring-2 ring-white">白</div>
+                <div>
+                  <p id="qName" class="text-sm font-medium">小白</p>
+                  <p id="qSummary" class="text-xs text-charcoal/50">一个心情趋于平静、近期关注极简风格的人</p>
+                </div>
+              </div>
+              <p id="qText" class="text-[18px] leading-snug font-light">“如果你可以和任何时代的人共进晚餐，你会选谁？问TA什么？”</p>
+              <div class="flex gap-2 mt-6">
+                <button id="answerToday" class="flex-1 h-11 rounded-full bg-charcoal text-white font-medium text-sm transition hover:shadow-medium">回答</button>
+                <button id="skipToday" class="px-5 h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">跳过</button>
+              </div>
+            </div>
+
+            <!-- 回答输入 -->
+            <div id="answerBox" class="hidden rounded-[24px] glass p-5">
+              <p class="text-xs text-noise-grey mb-3">作为与 ta 完全不一样的人，你会怎么看这个问题？</p>
+              <textarea id="answerInput" class="w-full h-32 rounded-2xl bg-white/40 p-4 text-[15px] bg-transparent resize-none" placeholder="写下你的回答（至少 15 字）"></textarea>
+              <div class="flex items-center justify-between mt-3">
+                <span id="answerCount" class="text-xs font-mono text-noise-grey">0 字</span>
+                <button id="answerSubmit" class="px-6 h-10 rounded-full bg-charcoal/30 text-white text-sm font-medium cursor-not-allowed transition">提交</button>
+              </div>
+            </div>
+
+            <!-- 我的回答 -->
+            <div>
+              <h3 class="text-lg font-medium tracking-tight mb-3">我的回答</h3>
+              <div id="answerHistory" class="space-y-3"></div>
+            </div>
+
+            <!-- 评分反馈 -->
+            <div class="rounded-[24px] glass p-6">
+              <h3 class="text-lg font-medium tracking-tight mb-4">评分反馈 · 本月</h3>
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="rounded-2xl bg-white/40 p-4">
+                  <p class="text-xs text-noise-grey">平均评分</p>
+                  <p class="text-2xl font-light mt-1">4.6<span class="text-base text-charcoal/40">/5</span></p>
+                </div>
+                <div class="rounded-2xl bg-white/40 p-4">
+                  <p class="text-xs text-noise-grey">获得 5 星</p>
+                  <p class="text-2xl font-light mt-1">3<span class="text-base text-charcoal/40"> 次</span></p>
+                </div>
+              </div>
+              <div class="mb-2 flex items-center justify-between text-xs">
+                <span class="text-charcoal/60">特权进度</span>
+                <span class="text-charcoal">3 / 5 个 5 星</span>
+              </div>
+              <div class="h-2 bg-charcoal/10 rounded-full overflow-hidden">
+                <div class="h-full bg-lilac rounded-full transition-all duration-500" style="width: 60%"></div>
+              </div>
+              <p class="text-xs text-noise-grey mt-3 leading-relaxed">本月回答了 8 个问题，平均 4.6 星。再获得 2 个 5 星可解锁额外提问额度。</p>
+              <button data-open="guideSheet" class="btn-soft mt-4 text-xs">查看回答指南</button>
+            </div>
+          </section>
+
+          <!-- Profile -->
+          <section id="screen-profile" class="screen hidden space-y-6">
+
+            <div class="text-center py-4">
+              <div class="w-20 h-20 rounded-full aurora-bg mx-auto grid place-items-center text-2xl font-light text-charcoal ring-4 ring-white shadow-soft" id="profileAvatar">林</div>
+              <h2 class="text-2xl font-light tracking-tight mt-4" id="profileName">小林</h2>
+              <p class="text-sm text-charcoal/50 mt-1">共7份记录</p>
+            </div>
+
+            <div class="rounded-[24px] glass p-5 space-y-3">
+              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">本月提问额度</span><span id="statusQuota" data-n="1" class="font-medium">1 次</span></div>
+              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">奖励额度</span><span id="bonusQuota" class="font-medium">1 次</span></div>
+              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">回答质量分</span><span class="font-medium">4.6 / 5</span></div>
+              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">账户状态</span><span class="font-medium">正常</span></div>
+            </div>
+
+            <div class="rounded-[24px] glass p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium tracking-tight">当前档案</h3>
+                <button data-open="editor" class="text-xs text-charcoal/60 hover:text-charcoal transition">编辑</button>
+              </div>
+              <div class="space-y-3 text-[15px]" id="profileFields">
+                <div class="flex justify-between"><span class="text-charcoal/55">心情</span><span>平静</span></div>
+                <div class="flex justify-between"><span class="text-charcoal/55">在忙的事</span><span>准备跳槽面试</span></div>
+                <div class="flex justify-between"><span class="text-charcoal/55">最近常听</span><span>落日飞车 / 民谣</span></div>
+                <div class="flex justify-between"><span class="text-charcoal/55">最近在看</span><span>请以你的名字呼唤我</span></div>
+                <div class="flex justify-between"><span class="text-charcoal/55">品牌 / 风格</span><span>Uniqlo U / Aesop · 极简</span></div>
+                <div class="flex justify-between"><span class="text-charcoal/55">最近在学</span><span>滑板</span></div>
+              </div>
+            </div>
+
+            <div class="rounded-[24px] glass p-5 space-y-2">
+              <button data-open="settingsSheet" class="w-full flex items-center justify-between py-2 text-left">
+                <span class="text-[15px]">设置</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <button data-open="guideSheet" class="w-full flex items-center justify-between py-2 text-left">
+                <span class="text-[15px]">回答指南</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Messages -->
+        <div id="messages" class="absolute inset-0 z-40 hidden bg-bg-primary">
+          <div class="h-full flex flex-col">
+            <div class="px-6 pt-4 pb-2 flex items-center justify-between z-20">
+              <button id="msgBack" class="w-9 h-9 rounded-full glass grid place-items-center text-charcoal text-lg transition hover:bg-white/80">←</button>
+              <p class="text-[17px] font-medium">消息</p>
+              <div class="w-9"></div>
+            </div>
+            <div class="flex-1 overflow-y-auto hide-scroll px-5 pt-2 pb-6 space-y-3" id="messageList">
+              <div class="rounded-[20px] glass p-4 flex gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-full aurora-bg grid place-items-center shrink-0 text-charcoal">✓</div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[14px] font-medium">你的问题收到了一个回答</p>
+                  <p class="text-xs text-charcoal/50 mt-0.5">来自 Lisa Wang · 24 小时内评分</p>
+                  <p class="text-[10px] text-noise-grey mt-1">今天 09:12</p>
+                </div>
+              </div>
+              <div class="rounded-[20px] glass p-4 flex gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-full aurora-bg grid place-items-center shrink-0 text-charcoal">★</div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[14px] font-medium">你的回答获得了 5 星</p>
+                  <p class="text-xs text-charcoal/50 mt-0.5">连续高分 +1</p>
+                  <p class="text-[10px] text-noise-grey mt-1">昨天 21:40</p>
+                </div>
+              </div>
+              <div class="rounded-[20px] glass p-4 flex gap-3 shadow-sm">
+                <div class="w-10 h-10 rounded-full bg-mint/50 grid place-items-center shrink-0 text-charcoal">◷</div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-[14px] font-medium">问题审核通过，正在匹配</p>
+                  <p class="text-xs text-charcoal/50 mt-0.5">即将匹配给一位完全不同的人</p>
+                  <p class="text-[10px] text-noise-grey mt-1">昨天 18:05</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Composer sheet -->
+        <div id="composer" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">提问</p>
+            <button data-close="composer" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <p class="text-sm text-charcoal/55 mt-1">想问一个和你生活在不同频道的人？</p>
+            <div class="relative mt-5">
+              <textarea id="composeText" class="w-full h-36 rounded-2xl bg-bg-secondary p-4 text-[15px] resize-none border border-charcoal/20 focus:border-charcoal/60 transition" placeholder="输入你的问题（15–200 字）"></textarea>
+              <span id="composeCount" class="absolute bottom-3 right-4 text-xs font-mono text-noise-grey">0 / 200</span>
+            </div>
+            <p class="text-[11px] text-noise-grey mt-2">开放性问题更容易通过审核。</p>
+            <div class="mt-3 space-y-2">
+              <div class="rounded-xl glass p-3 text-[12px] text-charcoal/60 cursor-pointer hover:bg-white/70 transition compose-example">
+                例如：如果你完全不担心收入，你会选什么职业？
+              </div>
+              <div class="rounded-xl glass p-3 text-[12px] text-charcoal/60 cursor-pointer hover:bg-white/70 transition compose-example">
+                例如：更愿意被记住为“一个好人”还是“一个厉害的人”？
+              </div>
+            </div>
+            <button id="composeSubmit" class="mt-5 w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">提交</button>
+          </div>
+        </div>
+
+        <!-- Editor sheet -->
+        <div id="editor" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">编辑档案</p>
+            <button data-close="editor" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8 space-y-4">
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">现在的心情</p>
+              <div class="flex flex-wrap gap-2">
+                <button class="mood tag" data-mood="平静">平静</button>
+                <button class="mood tag" data-mood="焦虑">焦虑</button>
+                <button class="mood tag" data-mood="兴奋">兴奋</button>
+                <button class="mood tag" data-mood="疲惫">疲惫</button>
+                <button class="mood tag" data-mood="迷茫">迷茫</button>
+                <button class="mood tag" data-mood="期待">期待</button>
+                <button class="mood tag" data-mood="矛盾">矛盾</button>
+                <button class="mood tag" data-mood="孤独">孤独</button>
+                <button class="mood tag" data-mood="开心">开心</button>
+              </div>
+            </div>
+            <div><p class="text-[13px] text-charcoal/60 mb-2">在忙的事</p><input id="editBusy" class="w-full h-12 rounded-2xl bg-bg-secondary px-4 text-[15px] bg-transparent" value="在准备马拉松比赛" /></div>
+            <div><p class="text-[13px] text-charcoal/60 mb-2">最近常听</p><input id="editMusic" class="w-full h-12 rounded-2xl bg-bg-secondary px-4 text-[15px] bg-transparent" value="落日飞车 / 民谣" /></div>
+            <div><p class="text-[13px] text-charcoal/60 mb-2">最近在看</p><input id="editFilm" class="w-full h-12 rounded-2xl bg-bg-secondary px-4 text-[15px] bg-transparent" value="请以你的名字呼唤我" /></div>
+            <div><p class="text-[13px] text-charcoal/60 mb-2">品牌 / 风格</p><input id="editBrand" class="w-full h-12 rounded-2xl bg-bg-secondary px-4 text-[15px] bg-transparent" value="Uniqlo U / Aesop · 极简" /></div>
+            <div><p class="text-[13px] text-charcoal/60 mb-2">最近在学</p><input id="editLearn" class="w-full h-12 rounded-2xl bg-bg-secondary px-4 text-[15px] bg-transparent" value="滑板" /></div>
+            <button id="editorSave" class="w-full h-12 rounded-full bg-charcoal text-white font-medium text-[15px] transition hover:shadow-medium">保存并解锁 1 次提问</button>
+          </div>
+        </div>
+
+        <!-- Relay sheet -->
+        <div id="relaySheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">回答过去的你</p>
+            <button data-close="relaySheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <div class="rounded-2xl bg-bg-secondary p-4">
+              <p class="text-xs text-noise-grey mb-1">来自 3 月的你</p>
+              <p class="text-[15px] leading-relaxed">“3 月的你还在焦虑上岸，现在回头看，那场考试还重要吗？”</p>
+            </div>
+            <textarea id="relayText" class="mt-4 w-full h-36 rounded-2xl bg-bg-secondary p-4 text-[15px] resize-none" placeholder="以现在的你，回答过去…"></textarea>
+            <button id="relaySubmit" class="mt-4 w-full h-12 rounded-full bg-charcoal text-white font-medium text-[15px] transition hover:shadow-medium">回答并归档</button>
+          </div>
+        </div>
+
+        <!-- Archive detail sheet -->
+        <div id="archiveSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1" id="archiveSheetTitle">档案</p>
+            <button data-close="archiveSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <p class="text-xs text-noise-grey mb-1" id="archiveSheetSeason">2026 夏</p>
+            <h3 class="text-2xl font-light tracking-tight" id="archiveSheetHeadline">准备跳槽</h3>
+            <div class="mt-6 space-y-3">
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">心情</p>
+                <p class="text-[15px]" id="archiveSheetMood">平静</p>
+              </div>
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">在忙的事</p>
+                <p class="text-[15px]" id="archiveSheetBusy">开始学滑板</p>
+              </div>
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">常听</p>
+                <p class="text-[15px]" id="archiveSheetMusic">民谣 / 落日飞车</p>
+              </div>
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">在看</p>
+                <p class="text-[15px]" id="archiveSheetFilm">请以你的名字呼唤我</p>
+              </div>
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">最近在穿/用的品牌</p>
+                <p class="text-[15px]" id="archiveSheetBrand">—</p>
+              </div>
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">最近在追的偶像/创作者</p>
+                <p class="text-[15px]" id="archiveSheetCreator">—</p>
+              </div>
+              <div class="rounded-2xl glass p-4">
+                <p class="text-xs text-noise-grey mb-1">其他自定义</p>
+                <p class="text-[15px]" id="archiveSheetCustom">—</p>
+              </div>
+            </div>
+            <button id="archiveDelete" class="w-full mt-6 py-3 text-[14px] text-red-500/80 transition hover:text-red-500">删除这份档案</button>
+          </div>
+        </div>
+
+        <!-- Question answer sheet -->
+        <div id="questionSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">收到的回答</p>
+            <button data-close="questionSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <div class="rounded-2xl glass p-4 mb-4">
+              <p class="text-xs text-noise-grey mb-2">我的提问</p>
+              <p class="text-[15px] leading-relaxed" id="questionSheetText">“…”</p>
+            </div>
+            <div class="rounded-2xl glass p-4" style="background: linear-gradient(135deg, rgba(212,232,224,0.35), rgba(255,255,255,0.65));">
+              <p class="text-xs text-noise-grey mb-2">来自一位完全不同的人</p>
+              <p class="text-[15px] leading-relaxed" id="questionSheetAnswer">…</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- My questions sheet -->
+        <div id="myQuestionsSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">我的提问</p>
+            <button data-close="myQuestionsSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <div class="flex gap-2 mb-4 p-1 rounded-full bg-bg-secondary">
+              <button id="tabFromOthers" class="flex-1 h-9 rounded-full text-[13px] font-medium transition bg-charcoal text-white">来自别人</button>
+              <button id="tabFromSelf" class="flex-1 h-9 rounded-full text-[13px] font-medium transition text-charcoal">来自自己</button>
+            </div>
+            <div id="fromOthersPanel" class="space-y-3"></div>
+            <div id="fromSelfPanel" class="space-y-3 hidden"></div>
+          </div>
+        </div>
+
+        <!-- Update archive sheet -->
+        <div id="updateArchiveSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">更新档案</p>
+            <button data-close="updateArchiveSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8 space-y-4 overflow-y-auto max-h-[70vh]">
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">时间戳</p>
+              <p id="archiveDate" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] flex items-center text-charcoal/70">2026-09-12</p>
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">心情状态 <span class="text-noise-grey">*</span></p>
+              <div class="flex flex-wrap gap-2 mb-2" id="archiveMoodTags">
+                <button class="mood tag" data-mood="平静">平静</button>
+                <button class="mood tag" data-mood="焦虑">焦虑</button>
+                <button class="mood tag" data-mood="兴奋">兴奋</button>
+                <button class="mood tag" data-mood="疲惫">疲惫</button>
+                <button class="mood tag" data-mood="迷茫">迷茫</button>
+                <button class="mood tag" data-mood="期待">期待</button>
+                <button class="mood tag" data-mood="矛盾">矛盾</button>
+                <button class="mood tag" data-mood="孤独">孤独</button>
+                <button class="mood tag" data-mood="开心">开心</button>
+              </div>
+              <input id="archiveMoodExtra" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="补充说明（可选）" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">在忙的事 <span class="text-noise-grey">*</span></p>
+              <input id="archiveBusy" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="例如：准备跳槽面试" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">最近在听</p>
+              <input id="archiveMusic" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="歌手 / 歌曲 / 风格" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">最近在看</p>
+              <input id="archiveFilm" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="电影 / 剧集 / 综艺" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">最近在穿/用的品牌</p>
+              <input id="archiveBrand" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="Aesop / Uniqlo U" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">最近在追的偶像/创作者</p>
+              <input id="archiveCreator" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="博主 / 乐队 / 作家" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">其他自定义</p>
+              <input id="archiveCustom" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="例如：开始学滑板" />
+            </div>
+            <div>
+              <p class="text-[13px] text-charcoal/60 mb-2">一张代表照片</p>
+              <div id="archivePhotoUpload" class="w-full h-28 rounded-2xl glass border-2 border-dashed border-charcoal/20 flex flex-col items-center justify-center text-charcoal/40 cursor-pointer transition hover:bg-white/50">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
+                <p class="text-sm mt-1">点击选择照片</p>
+              </div>
+            </div>
+            <button id="archiveSubmit" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">保存档案</button>
+          </div>
+        </div>
+
+        <!-- Rating sheet -->
+        <div id="ratingSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">为回答评分</p>
+            <button data-close="ratingSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <p class="text-sm text-charcoal/55 mt-1">这次回答带给你什么？可多选。</p>
+            <div class="flex items-center justify-center gap-1 mt-6">
+              <svg data-v="1" class="rate-star w-8 h-8 text-charcoal/15 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg>
+              <svg data-v="2" class="rate-star w-8 h-8 text-charcoal/15 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg>
+              <svg data-v="3" class="rate-star w-8 h-8 text-charcoal/15 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg>
+              <svg data-v="4" class="rate-star w-8 h-8 text-charcoal/15 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg>
+              <svg data-v="5" class="rate-star w-8 h-8 text-charcoal/15 cursor-pointer" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-6">
+              <button class="tag rate-tag" data-tag="有帮助">有帮助</button>
+              <button class="tag rate-tag" data-tag="有启发">有启发</button>
+              <button class="tag rate-tag" data-tag="有共鸣">有共鸣</button>
+            </div>
+            <button id="ratingSubmit" class="mt-8 w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">提交评分</button>
+          </div>
+        </div>
+
+        <!-- Answer guide sheet -->
+        <div id="guideSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">回答指南</p>
+            <button data-close="guideSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8 space-y-4 text-[15px] leading-relaxed text-charcoal/75">
+            <p>高质量回答来自真诚的视角差异。试着：</p>
+            <ul class="space-y-2 list-disc pl-5">
+              <li>从提问者的处境出发，给出具体建议或经验</li>
+              <li>分享一个你真实经历过的类似时刻</li>
+              <li>避免空泛安慰或说教，提供不同角度的思考</li>
+              <li>不暴露个人信息，不引导站外联系</li>
+            </ul>
+            <p class="text-sm text-noise-grey">回答字数需 ≥15 字，通过安全审核后送达提问者。</p>
+          </div>
+        </div>
+
+        <!-- Settings sheet -->
+        <div id="settingsSheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1">设置</p>
+            <button data-close="settingsSheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8 space-y-4">
+            <div class="flex items-center justify-between py-2">
+              <span class="text-[15px]">每日 9:00 推送今日问题</span>
+              <button id="pushToggle" class="w-12 h-7 rounded-full bg-lilac relative transition"><span class="absolute right-1 top-1 w-5 h-5 rounded-full bg-white transition"></span></button>
+            </div>
+            <div class="flex items-center justify-between py-2">
+              <span class="text-[15px]">免打扰时段 22:00–8:00</span>
+              <button id="dndToggle" class="w-12 h-7 rounded-full bg-lilac relative transition"><span class="absolute right-1 top-1 w-5 h-5 rounded-full bg-white transition"></span></button>
+            </div>
+            <div class="pt-4 border-t border-charcoal/10">
+              <button id="openUserAgreement" class="w-full text-left py-2 text-[15px] text-charcoal/70">用户协议</button>
+              <button id="openPrivacyPolicy" class="w-full text-left py-2 text-[15px] text-charcoal/70">隐私政策</button>
+              <button id="logoutAccount" class="w-full text-left py-2 text-[15px] text-charcoal/70">退出账号</button>
+              <button id="deleteAccount" class="w-full text-left py-2 text-[15px] text-red-500/80">注销账号</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policy sheet -->
+        <div id="policySheet" class="sheet z-40 bg-white">
+          <div class="px-6 pt-6 pb-3 flex items-center justify-between">
+            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
+            <p class="text-[17px] font-medium pt-1" id="policyTitle">用户协议</p>
+            <button data-close="policySheet" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="px-6 pb-8">
+            <div id="policyContent" class="text-[14px] leading-relaxed text-charcoal/80 max-h-[60vh] overflow-y-auto hide-scroll space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- Scrim -->
+        <div id="scrim" class="scrim z-30"></div>
+
+        <!-- FAB -->
+        <button id="fab" class="absolute right-5 bottom-24 w-12 h-12 rounded-full bg-charcoal text-white grid place-items-center shadow-medium hover:shadow-large active:scale-95 transition text-2xl z-20 hidden">+</button>
+
+        <!-- Bottom nav -->
+        <nav class="absolute inset-x-0 bottom-0 z-20 bg-white/70 backdrop-blur-xl border-t border-charcoal/5 px-6 pb-5 pt-3">
+          <div class="flex items-end justify-around">
+            <button class="tab flex flex-col items-center gap-1 text-charcoal" data-tab="capsule">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="7" width="14" height="12" rx="3"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M9 12h6"/></svg>
+              <span class="text-[11px] font-medium">时光胶囊</span>
+            </button>
+            <button class="tab flex flex-col items-center gap-1 text-noise-grey" data-tab="mirror">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M3 12h18"/></svg>
+              <span class="text-[11px] font-medium">镜像对话</span>
+            </button>
+            <button class="tab flex flex-col items-center gap-1 text-noise-grey" data-tab="profile">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3.5"/><path d="M5 21c0-4 3.5-6 7-6s7 2 7 6"/></svg>
+              <span class="text-[11px] font-medium">我的</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed left-1/2 top-6 -translate-x-1/2 -translate-y-20 opacity-0 z-[70] px-5 py-3 rounded-full bg-charcoal text-white text-[13px] font-medium shadow-medium transition-all duration-300 pointer-events-none">完成</div>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => Array.from(document.querySelectorAll(s));
+    const toast = $('#toast');
+    function showToast(m) {
+      toast.textContent = m;
+      toast.classList.remove('-translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('-translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 1800);
+    }
+
+    // App state
+    const state = {
+      nickname: '小林',
+      mood: '平静',
+      busy: '准备跳槽面试',
+      music: '落日飞车 / 民谣',
+      film: '请以你的名字呼唤我',
+      brand: 'Uniqlo U / Aesop · 极简',
+      learn: '滑板',
+      tags: ['民谣', '独立音乐', '极简风格'],
+      questions: [
+        { text: '如果人生只能被一件事定义，你希望它是什么？', status: '已获得回答', date: '今天 09:12', answer: '我希望是“保持好奇”。因为只要还在问问题，生活就总有新的一面。' },
+        { text: '如何面对突如其来的健康焦虑？', status: '审核中', date: '昨天 18:05' }
+      ],
+      answerHistory: [
+        { question: '如果你完全不担心收入，你会选什么职业？', answer: '我会去当一名冲浪教练。钱够用就行，重要的是每天都能看见海。', score: 4 },
+        { question: '成年人开始一项新爱好最大的障碍是什么？', answer: '是「怕丢脸」。放下这个，几乎什么都能开始。', score: 5 }
+      ],
+      relayAnswers: [],
+      skippedToday: false,
+      ratedToday: false
+    };
+
+    // 路由
+    const tabs = $$('.tab');
+    let currentTab = 'capsule';
+    function showScreen(name) {
+      currentTab = name;
+      $$('.screen').forEach(s => { s.classList.add('hidden'); s.classList.remove('fade-in'); });
+      const active = $('#screen-' + name);
+      active.classList.remove('hidden');
+      active.classList.add('fade-in');
+      tabs.forEach(t => {
+        const key = t.dataset.tab;
+        const activeTab = (key === name);
+        t.classList.toggle('text-charcoal', activeTab);
+        t.classList.toggle('text-noise-grey', !activeTab);
+        t.querySelector('svg').setAttribute('stroke-width', activeTab ? '1.9' : '1.7');
+      });
+      $('#scroller').scrollTop = 0;
+      $('#fab').classList.toggle('hidden', name !== 'mirror' && name !== 'capsule');
+    }
+    tabs.forEach(t => t.addEventListener('click', () => showScreen(t.dataset.tab)));
+
+    // 弹层
+    const scrim = $('#scrim');
+    const SHEETS = ['composer', 'editor', 'relaySheet', 'archiveSheet', 'questionSheet', 'myQuestionsSheet', 'updateArchiveSheet', 'ratingSheet', 'guideSheet', 'settingsSheet', 'policySheet'];
+    function openSheet(id) { $('#' + id).classList.add('open'); scrim.classList.add('show'); }
+    function closeSheets() {
+      SHEETS.forEach(id => $('#' + id).classList.remove('open'));
+      scrim.classList.remove('show');
+    }
+    $$('[data-open]').forEach(b => b.addEventListener('click', () => openSheet(b.dataset.open)));
+    $$('[data-close]').forEach(b => b.addEventListener('click', closeSheets));
+    scrim.addEventListener('click', closeSheets);
+    $('#fab').addEventListener('click', () => {
+      if (currentTab === 'capsule') {
+        const now = new Date();
+        $('#archiveDate').textContent = now.toISOString().slice(0, 10);
+        resetArchiveForm();
+        openSheet('updateArchiveSheet');
+      } else {
+        openSheet('composer');
+      }
+    });
+
+    // 档案风格摘要
+    function updateStyleSummary() {
+      const styleMap = {
+        'Uniqlo U / Aesop · 极简': '极简风格',
+        '滑板': '街头风格',
+        '落日飞车 / 民谣': '民谣/独立音乐',
+        '草东没有派对': '摇滚',
+        '陈绮贞': '民谣/独立音乐'
+      };
+      const style = styleMap[state.brand] || '极简风格';
+      const musicStyle = styleMap[state.music] || '民谣/独立音乐';
+      const text = `一个心情趋于${state.mood}、近期关注${style}、听歌偏向${musicStyle}的人。`;
+      $('#styleSummaryText').textContent = text;
+      $('#qSummary').textContent = `一个心情趋于${state.mood}、近期关注${style}的人提问：`;
+    }
+    updateStyleSummary();
+
+    // 我的提问
+    function renderMyQuestions() {
+      const container = $('#myQuestions');
+      if (state.questions.length === 0) {
+        container.innerHTML = '<p class="text-sm text-charcoal/50 py-4 text-center">还没有提问</p>';
+        return;
+      }
+      container.innerHTML = state.questions.map((q, i) => {
+        const statusColor = q.status === '已获得回答' ? 'bg-mint/40 text-charcoal' : q.status === '审核中' ? 'bg-lilac/40 text-charcoal' : 'bg-white/60 text-charcoal';
+        const clickable = q.status === '已获得回答' && q.answer;
+        return `<div class="question-card rounded-[20px] glass p-4 transition ${clickable ? 'cursor-pointer hover:bg-white/70' : ''}" data-idx="${i}">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium ${statusColor}">${q.status}</span>
+            <span class="text-[10px] text-noise-grey">${q.date}</span>
+          </div>
+          <p class="text-[15px] leading-relaxed">“${q.text}”</p>
+        </div>`;
+      }).join('');
+    }
+    renderMyQuestions();
+    $('#myQuestions').addEventListener('click', (e) => {
+      const card = e.target.closest('.question-card');
+      if (!card) return;
+      const q = state.questions[+card.dataset.idx];
+      if (!q || q.status !== '已获得回答' || !q.answer) return;
+      $('#questionSheetText').textContent = '“' + q.text + '”';
+      $('#questionSheetAnswer').textContent = q.answer;
+      openSheet('questionSheet');
+    });
+
+    // 我的提问总览
+    function renderMyQuestionsSheet() {
+      const others = state.questions.filter(q => q.status === '已获得回答' && q.answer);
+      $('#fromOthersPanel').innerHTML = others.length
+        ? others.map(q => `<div class="rounded-[20px] glass p-4">
+            <p class="text-xs text-noise-grey mb-1">${q.date}</p>
+            <p class="text-[15px] leading-relaxed mb-3">“${q.text}”</p>
+            <div class="rounded-xl p-3" style="background: linear-gradient(135deg, rgba(212,232,224,0.35), rgba(255,255,255,0.65));">
+              <p class="text-xs text-noise-grey mb-1">来自别人</p>
+              <p class="text-[14px] leading-relaxed">${q.answer}</p>
+            </div>
+          </div>`).join('')
+        : '<p class="text-sm text-charcoal/50 py-6 text-center">还没有来自别人的回答</p>';
+      $('#fromSelfPanel').innerHTML = state.relayAnswers.length
+        ? state.relayAnswers.map(r => `<div class="rounded-[20px] glass p-4">
+            <p class="text-xs text-noise-grey mb-1">${r.date}</p>
+            <p class="text-[15px] leading-relaxed mb-3">“${r.question}”</p>
+            <div class="rounded-xl p-3" style="background: linear-gradient(135deg, rgba(200,197,230,0.25), rgba(255,255,255,0.65));">
+              <p class="text-xs text-noise-grey mb-1">来自自己</p>
+              <p class="text-[14px] leading-relaxed">${r.answer}</p>
+            </div>
+          </div>`).join('')
+        : '<p class="text-sm text-charcoal/50 py-6 text-center">还没有来自自己的回答</p>';
+    }
+    function switchMyQuestionsTab(tab) {
+      const isOthers = tab === 'others';
+      $('#tabFromOthers').classList.toggle('bg-charcoal', isOthers);
+      $('#tabFromOthers').classList.toggle('text-white', isOthers);
+      $('#tabFromOthers').classList.toggle('text-charcoal', !isOthers);
+      $('#tabFromSelf').classList.toggle('bg-charcoal', !isOthers);
+      $('#tabFromSelf').classList.toggle('text-white', !isOthers);
+      $('#tabFromSelf').classList.toggle('text-charcoal', isOthers);
+      $('#fromOthersPanel').classList.toggle('hidden', !isOthers);
+      $('#fromSelfPanel').classList.toggle('hidden', isOthers);
+    }
+    $('#tabFromOthers').addEventListener('click', () => switchMyQuestionsTab('others'));
+    $('#tabFromSelf').addEventListener('click', () => switchMyQuestionsTab('self'));
+    $('#viewMyQuestions').addEventListener('click', () => { renderMyQuestionsSheet(); openSheet('myQuestionsSheet'); });
+
+    // 更新档案
+    const archiveMoodTags = $$('#archiveMoodTags .mood');
+    let selectedArchiveMood = '';
+    archiveMoodTags.forEach(b => b.addEventListener('click', () => {
+      archiveMoodTags.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      selectedArchiveMood = b.dataset.mood;
+      updateArchiveSubmit();
+    }));
+    function resetArchiveForm() {
+      selectedArchiveMood = '';
+      archiveMoodTags.forEach(x => x.classList.remove('active'));
+      $('#archiveMoodExtra').value = '';
+      $('#archiveBusy').value = '';
+      $('#archiveMusic').value = '';
+      $('#archiveFilm').value = '';
+      $('#archiveBrand').value = '';
+      $('#archiveCreator').value = '';
+      $('#archiveCustom').value = '';
+      updateArchiveSubmit();
+    }
+    function updateArchiveSubmit() {
+      const ok = selectedArchiveMood && $('#archiveBusy').value.trim();
+      const btn = $('#archiveSubmit');
+      btn.classList.toggle('bg-charcoal', ok);
+      btn.classList.toggle('bg-charcoal/30', !ok);
+      btn.classList.toggle('cursor-not-allowed', !ok);
+    }
+    ['archiveBusy', 'archiveMusic', 'archiveFilm', 'archiveBrand', 'archiveCreator', 'archiveCustom'].forEach(id => {
+      $('#' + id).addEventListener('input', updateArchiveSubmit);
+    });
+    $('#archivePhotoUpload').addEventListener('click', () => showToast('照片上传为演示占位'));
+    $('#archiveSubmit').addEventListener('click', () => {
+      if (!selectedArchiveMood || !$('#archiveBusy').value.trim()) return;
+      const date = $('#archiveDate').textContent;
+      const moodExtra = $('#archiveMoodExtra').value.trim();
+      const mood = moodExtra ? selectedArchiveMood + '（' + moodExtra + '）' : selectedArchiveMood;
+      const busy = $('#archiveBusy').value.trim();
+      const music = $('#archiveMusic').value.trim() || '—';
+      const film = $('#archiveFilm').value.trim() || '—';
+      const brand = $('#archiveBrand').value.trim();
+      const creator = $('#archiveCreator').value.trim();
+      const custom = $('#archiveCustom').value.trim();
+      const id = 'a' + Date.now();
+      ARCHIVES.push({ id, date, season: getSeason(date), title: busy, mood, busy, music, film, brand, creator, custom });
+      state.mood = selectedArchiveMood;
+      state.busy = busy;
+      if ($('#archiveMusic').value.trim()) state.music = music;
+      if ($('#archiveFilm').value.trim()) state.film = film;
+      if (brand) state.brand = brand;
+      if (custom) state.learn = custom;
+      updateStyleSummary();
+      renderProfileFields();
+      renderTimeline();
+      renderCompare();
+      updateArchiveCount();
+      closeSheets();
+      showToast('档案已更新');
+    });
+
+    // 回答档案
+    function renderAnswerHistory() {
+      const container = $('#answerHistory');
+      container.innerHTML = state.answerHistory.map(h => {
+        const stars = Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < h.score ? 'text-lilac' : 'text-charcoal/15'}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg>`).join('');
+        return `<div class="rounded-[20px] glass p-4">
+          <p class="text-xs text-noise-grey mb-1">回答过</p>
+          <p class="text-[14px] leading-snug mb-2">“${h.question}”</p>
+          <p class="text-[13px] text-charcoal/70 leading-relaxed mb-3">${h.answer}</p>
+          <div class="flex items-center gap-1">${stars}<span class="ml-1 text-xs font-mono text-noise-grey">${h.score}.0</span></div>
+        </div>`;
+      }).join('');
+    }
+    renderAnswerHistory();
+
+    // Onboarding
+    const TAG_OPTIONS = {
+      music: ['民谣', '独立音乐', '摇滚', '流行', '电子', '爵士', '后摇', '古典'],
+      film: ['剧情', '文艺', '科幻', '悬疑', '纪录片', '动画', '爱情'],
+      brand: ['极简风格', '街头风格', '复古风格', '日系', '韩系', '运动休闲']
+    };
+    function renderTagOptions(category, containerId) {
+      const container = $(containerId);
+      container.innerHTML = TAG_OPTIONS[category].map(tag =>
+        `<button class="tag ob-tag" data-cat="${category}" data-tag="${tag}">${tag}</button>`
+      ).join('');
+    }
+    renderTagOptions('music', '#tagMusic');
+    renderTagOptions('film', '#tagFilm');
+    renderTagOptions('brand', '#tagBrand');
+
+    let selectedObTags = [];
+    document.addEventListener('click', (e) => {
+      const t = e.target.closest('.ob-tag');
+      if (!t) return;
+      const tag = t.dataset.tag;
+      if (t.classList.contains('active')) {
+        t.classList.remove('active');
+        selectedObTags = selectedObTags.filter(x => x !== tag);
+      } else {
+        if (selectedObTags.length >= 3) return;
+        t.classList.add('active');
+        selectedObTags.push(tag);
+      }
+    });
+
+    let obStep = 0;
+    const total = 9;
+    const obSteps = $$('.ob-step');
+    function renderOb() {
+      obSteps.forEach(s => s.classList.toggle('active', +s.dataset.step === obStep));
+      $('#obBack').classList.toggle('hidden', obStep === 0);
+      $('#obNext').textContent = obStep === total - 1 ? '进入半镜' : '下一步';
+    }
+    function finishOb() {
+      $('#onboarding').classList.add('hidden');
+      $('#onboarding').style.display = '';
+      const nick = $('#obNickname').value.trim() || '小林';
+      state.nickname = nick;
+      state.mood = $('.mood.active')?.dataset.mood || '平静';
+      state.busy = $('#obBusy').value.trim() || '在准备马拉松比赛';
+      state.tags = selectedObTags.length > 0 ? selectedObTags : state.tags;
+      updateUserInfo();
+      showToast('欢迎来到半镜 · 问题审核中');
+    }
+    $('#obNext').addEventListener('click', () => {
+      if (obStep === 5) {
+        const nick = $('#obNickname').value.trim();
+        if (!nick) { showToast('请输入昵称'); return; }
+        if (nick.length < 2 || nick.length > 12) { showToast('昵称需 2-12 个字符'); return; }
+      }
+      if (obStep === 7) {
+        const q = $('#obQuestion').value.trim();
+        if (q.length < 15) { showToast('问题至少 15 字'); return; }
+        state.questions.unshift({ text: q, status: '审核中', date: '刚刚' });
+        renderMyQuestions();
+      }
+      if (obStep < total - 1) { obStep++; renderOb(); }
+      else finishOb();
+    });
+    $('#obBack').addEventListener('click', () => { if (obStep > 0) { obStep--; renderOb(); } });
+    $('#obSkip').addEventListener('click', finishOb);
+    renderOb();
+
+    $$('.mot').forEach(b => b.addEventListener('click', () => {
+      $$('.mot').forEach(x => x.classList.remove('bg-white/80', 'ring-1', 'ring-charcoal/10'));
+      b.classList.add('bg-white/80', 'ring-1', 'ring-charcoal/10');
+    }));
+    $$('.mood').forEach(b => b.addEventListener('click', () => {
+      const container = b.closest('div');
+      if (!container) return;
+      container.querySelectorAll('.mood').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    }));
+
+    $('#musicImport').addEventListener('click', () => {
+      $('#musicStatus').textContent = '已同步';
+      $('#musicStatus').classList.add('text-charcoal');
+      showToast('已同步最近常听');
+    });
+    $('#photoUpload').addEventListener('click', () => showToast('照片上传为演示占位'));
+    $$('.example-q').forEach(el => el.addEventListener('click', () => {
+      $('#obQuestion').value = el.textContent.replace(/[“”]/g, '');
+    }));
+
+    function updateUserInfo() {
+      $('#greetingName').textContent = state.nickname;
+      $('#capsuleName').textContent = state.nickname;
+      $('#profileName').textContent = state.nickname;
+      $('#capsuleAvatar').textContent = state.nickname[0];
+      $('#profileAvatar').textContent = state.nickname[0];
+      updateStyleSummary();
+    }
+
+    // Splash
+    $('#enterBtn').addEventListener('click', () => {
+      const acc = accountStore.get();
+      const now = Date.now();
+      if (acc && acc.status === 'active') {
+        goToApp();
+        return;
+      }
+      if (acc && acc.status === 'cooling' && new Date(acc.coolingUntil).getTime() > now) {
+        $('#splash').classList.add('hidden');
+        $('#login').classList.remove('hidden');
+        $('#login').style.display = '';
+        track('login_page_view', { scenario: 'cooling' });
+        return;
+      }
+      $('#splash').classList.add('hidden');
+      $('#login').classList.remove('hidden');
+      $('#login').style.display = '';
+      track('login_page_view', { scenario: 'login' });
+    });
+
+    // Account store & tracking
+    const accountStore = {
+      get() {
+        try { return JSON.parse(localStorage.getItem('hemispec_account')); } catch { return null; }
+      },
+      set(data) { localStorage.setItem('hemispec_account', JSON.stringify(data)); },
+      clear() { localStorage.removeItem('hemispec_account'); }
+    };
+    function track(event, params = {}) {
+      console.log('[TRACK]', event, params);
+    }
+
+    // Login
+    const phone = $('#phone'), code = $('#code'), getCode = $('#getCode'), loginAction = $('#loginAction'), agree = $('#agree');
+    const codeError = $('#codeError'), switchToPhone = $('#switchToPhone');
+    function validatePhone(v) { return /^1[3-9]\d{9}$/.test(v); }
+    function validateCode(v) { return /^\d{6}$/.test(v); }
+    function updateLoginBtn() {
+      const ok = validatePhone(phone.value) && validateCode(code.value) && agree.checked;
+      loginAction.classList.toggle('bg-charcoal', ok);
+      loginAction.classList.toggle('bg-charcoal/30', !ok);
+      loginAction.classList.toggle('cursor-not-allowed', !ok);
+    }
+    phone.addEventListener('input', () => {
+      phone.value = phone.value.replace(/\D/g, '').slice(0, 11);
+      updateLoginBtn();
+    });
+    code.addEventListener('input', () => {
+      code.value = code.value.replace(/\D/g, '').slice(0, 6);
+      codeError.classList.add('hidden');
+      code.classList.remove('shake', 'border-red-400');
+      updateLoginBtn();
+    });
+    agree.addEventListener('change', updateLoginBtn);
+    let codeTimer = null;
+    getCode.addEventListener('click', () => {
+      if (!validatePhone(phone.value)) { showToast('请输入正确手机号'); return; }
+      if (codeTimer) return;
+      let sec = 60;
+      getCode.textContent = `${sec}s`;
+      getCode.classList.add('opacity-60', 'cursor-not-allowed');
+      codeTimer = setInterval(() => {
+        sec--;
+        if (sec <= 0) {
+          clearInterval(codeTimer); codeTimer = null;
+          getCode.textContent = '获取验证码';
+          getCode.classList.remove('opacity-60', 'cursor-not-allowed');
+        } else {
+          getCode.textContent = `${sec}s`;
+        }
+      }, 1000);
+      showToast('验证码已发送');
+    });
+    function goToOnboarding() {
+      $('#login').classList.add('hidden');
+      $('#registerPanel').classList.remove('open');
+      $('#onboarding').classList.remove('hidden');
+      $('#onboarding').style.display = '';
+      obStep = 0; renderOb();
+    }
+    function goToApp() {
+      $('#splash').classList.add('hidden');
+      $('#login').classList.add('hidden');
+      $('#registerPanel').classList.remove('open');
+      $('#onboarding').classList.add('hidden');
+      $('#onboarding').style.display = '';
+      showScreen('capsule');
+    }
+    function handleLoginResult(phoneNum, method) {
+      track('login_method_click', { method });
+      let acc = accountStore.get();
+      const now = Date.now();
+      if (acc && acc.phone === phoneNum) {
+        if (acc.status === 'cooling') {
+          const until = new Date(acc.coolingUntil).getTime();
+          if (now < until) {
+            if (confirm('账号正在注销冷静期，登录将撤销注销并恢复数据')) {
+              acc.status = 'active';
+              delete acc.coolingUntil;
+              accountStore.set(acc);
+              track('login_direct_success', { phone: phoneNum, method, restored: true });
+              showToast('账号已恢复');
+              goToApp();
+            }
+            return;
+          } else {
+            accountStore.clear();
+            acc = null;
+          }
+        }
+        if (acc && acc.status === 'active') {
+          track('login_direct_success', { phone: phoneNum, method });
+          goToApp();
+          return;
+        }
+      }
+      track('register_start', { phone: phoneNum, method });
+      showRegisterPanel(phoneNum);
+    }
+    function showRegisterPanel(phoneNum) {
+      $('#regPhone').value = phoneNum;
+      $('#registerPanel').classList.add('open');
+    }
+    function hideRegisterPanel() {
+      $('#registerPanel').classList.remove('open');
+    }
+    loginAction.addEventListener('click', () => {
+      if (!validatePhone(phone.value) || !validateCode(code.value) || !agree.checked) return;
+      if (code.value !== '123456' && Math.random() > 0.7) {
+        code.classList.add('shake', 'border-red-400');
+        codeError.classList.remove('hidden');
+        setTimeout(() => code.classList.remove('shake'), 350);
+        return;
+      }
+      handleLoginResult(phone.value, 'phone');
+    });
+    $('#wechatLogin').addEventListener('click', () => {
+      if (!agree.checked) { showToast('请先同意用户协议'); return; }
+      track('login_method_click', { method: 'wechat' });
+      if (Math.random() > 0.5) {
+        $('#wechatLogin').classList.add('hidden');
+        switchToPhone.classList.remove('hidden');
+        showToast('微信授权失败，请切换手机号登录');
+        return;
+      }
+      handleLoginResult('wx_' + Date.now(), 'wechat');
+    });
+    switchToPhone.addEventListener('click', () => {
+      switchToPhone.classList.add('hidden');
+      $('#wechatLogin').classList.remove('hidden');
+    });
+    $('#loginBack').addEventListener('click', () => {
+      $('#login').classList.add('hidden');
+      hideRegisterPanel();
+      $('#splash').classList.remove('hidden');
+    });
+
+    // Register
+    const regNickname = $('#regNickname'), regNicknameHint = $('#regNicknameHint');
+    const regGenderTags = $$('#regGender .reg-gender');
+    const regAgeTags = $$('#regAge .reg-age');
+    let regGender = '保密', regAge = '保密';
+    regGenderTags.forEach(b => b.addEventListener('click', () => {
+      regGenderTags.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      regGender = b.dataset.val;
+    }));
+    regAgeTags.forEach(b => b.addEventListener('click', () => {
+      regAgeTags.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      regAge = b.dataset.val;
+    }));
+    regGenderTags[0].classList.add('active');
+    regAgeTags[0].classList.add('active');
+    function updateRegBtn() {
+      const nick = regNickname.value.trim();
+      const ok = nick.length >= 2 && nick.length <= 12 && $('#regAgree').checked;
+      const btn = $('#regSubmit');
+      btn.classList.toggle('bg-charcoal', ok);
+      btn.classList.toggle('bg-charcoal/30', !ok);
+      btn.classList.toggle('cursor-not-allowed', !ok);
+      const invalid = nick.length > 12 || (nick.length > 0 && nick.length < 2);
+      regNicknameHint.textContent = nick.length > 12 ? '昵称需 2-12 个字符' : nick.length > 0 && nick.length < 2 ? '至少 2 个字符' : '支持中文、英文、数字';
+      regNicknameHint.classList.toggle('text-red-500', invalid);
+      regNicknameHint.classList.toggle('text-noise-grey', !invalid);
+    }
+    regNickname.addEventListener('input', updateRegBtn);
+    $('#regAgree').addEventListener('change', updateRegBtn);
+    $('#regSubmit').addEventListener('click', () => {
+      const nick = regNickname.value.trim();
+      if (nick.length < 2 || nick.length > 12 || !$('#regAgree').checked) return;
+      const phoneNum = $('#regPhone').value;
+      accountStore.set({
+        phone: phoneNum,
+        status: 'active',
+        profile: { nickname: nick, gender: regGender, ageGroup: regAge },
+        createdAt: new Date().toISOString()
+      });
+      state.nickname = nick;
+      updateUserInfo();
+      track('register_success', { phone: phoneNum, nickname: nick });
+      hideRegisterPanel();
+      goToOnboarding();
+    });
+
+    // 并排对比
+    function getSeason(dateStr) {
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const s = m >= 3 && m <= 5 ? '春' : m >= 6 && m <= 8 ? '夏' : m >= 9 && m <= 11 ? '秋' : '冬';
+      return y + ' ' + s;
+    }
+    let ARCHIVES = [
+      { id: 'a1', date: '2025-03-15', season: '2025 春', title: '在考研', mood: '焦虑', busy: '每天泡图书馆', music: '草东没有派对', film: '天注定' },
+      { id: 'a2', date: '2025-07-20', season: '2025 夏', title: '毕业旅行', mood: '兴奋', busy: '环岛骑行', music: '落日飞车', film: '海街日记' },
+      { id: 'a3', date: '2026-04-10', season: '2026 春', title: '入职新公司', mood: '平静', busy: '适应新环境', music: '陈绮贞', film: '白日梦想家' },
+      { id: 'a4', date: '2026-08-24', season: '2026 夏', title: '准备跳槽', mood: '兴奋', busy: '开始学滑板', music: '民谣 / 落日飞车', film: '请以你的名字呼唤我' }
+    ];
+    let selected = ['a1', 'a4'];
+    let currentArchiveId = null;
+    function updateArchiveCount() {
+      $('#archiveCount').textContent = ARCHIVES.length;
+    }
+    function renderCompare() {
+      const archChips = $('#archChips'), comparePanel = $('#comparePanel'), compareHint = $('#compareHint'), compareDiff = $('#compareDiff');
+      archChips.innerHTML = ARCHIVES.map(a => {
+        const on = selected.includes(a.id);
+        return `<button data-arch="${a.id}" class="shrink-0 px-3 h-8 rounded-full text-[12px] font-medium transition ${on ? 'bg-charcoal text-white' : 'glass text-charcoal/60'}">${a.season}</button>`;
+      }).join('');
+      const two = selected.map(id => ARCHIVES.find(a => a.id === id));
+      compareHint.textContent = '已选 ' + selected.length + ' / 2';
+      comparePanel.innerHTML = two.map(a =>
+        `<div class="rounded-2xl glass p-3">
+          <p class="text-[10px] text-noise-grey">${a.season}</p>
+          <p class="text-[14px] font-medium mt-1">${a.title}</p>
+          <p class="text-[11px] text-charcoal/55 mt-1">${a.mood} · ${a.busy}</p>
+        </div>`).join('');
+      if (selected.length === 2) {
+        const [a, b] = two;
+        const moodDiff = a.mood === b.mood ? `心情没变，还是「${a.mood}」` : `心情从「${a.mood}」变成「${b.mood}」`;
+        compareDiff.textContent = `${moodDiff}；常听从「${a.music}」变成「${b.music}」。`;
+      } else {
+        compareDiff.textContent = '再选一个时间点。';
+      }
+      archChips.querySelectorAll('[data-arch]').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.dataset.arch;
+        if (selected.includes(id)) selected = selected.filter(x => x !== id);
+        else { if (selected.length >= 2) selected.shift(); selected.push(id); }
+        renderCompare();
+      }));
+    }
+    renderCompare();
+
+    // 时间线渲染
+    function renderTimeline() {
+      const container = $('#timeline');
+      const sorted = [...ARCHIVES].sort((a, b) => new Date(b.date) - new Date(a.date));
+      container.innerHTML = sorted.map(a => {
+        const dotColor = a.mood === '平静' ? 'bg-mint' : a.mood === '焦虑' || a.mood === '疲惫' ? 'bg-lilac' : a.mood === '兴奋' ? 'bg-charcoal/30' : 'bg-charcoal/20';
+        return `<div class="relative pl-6 archive-node" data-id="${a.id}">
+          <span class="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full ${dotColor} ring-4 ring-white shadow-sm"></span>
+          <p class="text-xs text-noise-grey">${a.date}</p>
+          <p class="text-[15px] font-medium mt-0.5 archive-title">${a.title}</p>
+          <p class="text-[13px] text-charcoal/55 mt-0.5">${a.mood} · ${a.busy} · ${a.music}</p>
+        </div>`;
+      }).join('');
+    }
+    renderTimeline();
+    updateArchiveCount();
+
+    // 时间线档案详情
+    $('#timeline').addEventListener('click', (e) => {
+      const node = e.target.closest('.archive-node');
+      if (!node) return;
+      const a = ARCHIVES.find(x => x.id === node.dataset.id);
+      if (!a) return;
+      currentArchiveId = a.id;
+      $('#archiveSheetTitle').textContent = a.season + ' 的档案';
+      $('#archiveSheetSeason').textContent = a.season;
+      $('#archiveSheetHeadline').textContent = a.title;
+      $('#archiveSheetMood').textContent = a.mood;
+      $('#archiveSheetBusy').textContent = a.busy;
+      $('#archiveSheetMusic').textContent = a.music;
+      $('#archiveSheetFilm').textContent = a.film;
+      $('#archiveSheetBrand').textContent = a.brand || '—';
+      $('#archiveSheetCreator').textContent = a.creator || '—';
+      $('#archiveSheetCustom').textContent = a.custom || '—';
+      openSheet('archiveSheet');
+    });
+    $('#archiveDelete').addEventListener('click', () => {
+      if (!currentArchiveId) return;
+      if (!confirm('确定删除这份档案？删除后不可恢复。')) return;
+      ARCHIVES = ARCHIVES.filter(a => a.id !== currentArchiveId);
+      selected = selected.filter(id => id !== currentArchiveId);
+      currentArchiveId = null;
+      renderTimeline();
+      renderCompare();
+      updateArchiveCount();
+      closeSheets();
+      showToast('已删除档案');
+    });
+
+    // 镜像对话：今日问题
+    const TODAY_QUESTION = {
+      name: '小白',
+      summary: '一个心情趋于平静、近期关注极简风格的人',
+      text: '如果你可以和任何时代的人共进晚餐，你会选谁？问TA什么？'
+    };
+    $('#answerToday').addEventListener('click', () => {
+      $('#answerBox').classList.remove('hidden');
+      $('#answerInput').focus();
+    });
+    $('#skipToday').addEventListener('click', () => {
+      if (state.skippedToday) { showToast('今日已跳过'); return; }
+      state.skippedToday = true;
+      $('#skipToday').textContent = '已跳过';
+      $('#skipToday').classList.add('opacity-50');
+      $('#qStateChip').textContent = '已跳过';
+      showToast('已跳过，明日 9:00 再推送');
+    });
+
+    const answerInput = $('#answerInput'), answerCount = $('#answerCount'), answerSubmit = $('#answerSubmit');
+    answerInput.addEventListener('input', () => {
+      const n = answerInput.value.length;
+      answerCount.textContent = n + ' 字';
+      const ok = n >= 15;
+      answerSubmit.classList.toggle('bg-charcoal', ok);
+      answerSubmit.classList.toggle('bg-charcoal/30', !ok);
+      answerSubmit.classList.toggle('cursor-not-allowed', !ok);
+    });
+    answerSubmit.addEventListener('click', () => {
+      const text = answerInput.value.trim();
+      if (text.length < 15) { showToast('回答至少 15 字'); return; }
+      state.answerHistory.unshift({ question: TODAY_QUESTION.text, answer: text, score: 0 });
+      renderAnswerHistory();
+      answerInput.value = '';
+      answerCount.textContent = '0 字';
+      $('#answerBox').classList.add('hidden');
+      $('#qStateChip').textContent = '已回答';
+      showToast('回答已提交审核');
+      setTimeout(() => {
+        state.answerHistory[0].score = 5;
+        renderAnswerHistory();
+        showToast('你的回答获得 5 星');
+        addMessage('你的回答获得了 5 星', '连续高分 +1', '刚刚');
+      }, 3000);
+    });
+
+    // 提问 composer
+    const composeText = $('#composeText'), composeCount = $('#composeCount'), composeSubmit = $('#composeSubmit');
+    composeText.addEventListener('input', () => {
+      const n = composeText.value.length;
+      composeCount.textContent = n + ' / 200';
+      const ok = n >= 15 && n <= 200;
+      composeSubmit.classList.toggle('bg-charcoal', ok);
+      composeSubmit.classList.toggle('bg-charcoal/30', !ok);
+      composeSubmit.classList.toggle('cursor-not-allowed', !ok);
+    });
+    $$('.compose-example').forEach(el => el.addEventListener('click', () => {
+      composeText.value = el.textContent.replace('例如：', '').trim();
+      composeText.dispatchEvent(new Event('input'));
+    }));
+    composeSubmit.addEventListener('click', () => {
+      const n = composeText.value.length;
+      if (n < 15) { showToast('至少 15 字'); return; }
+      if (n > 200) { showToast('最多 200 字'); return; }
+      const text = composeText.value.trim();
+      closeSheets(); composeText.value = ''; composeCount.textContent = '0 / 200';
+      composeSubmit.classList.remove('bg-charcoal'); composeSubmit.classList.add('bg-charcoal/30', 'cursor-not-allowed');
+      state.questions.unshift({ text, status: '审核中', date: '刚刚' });
+      renderMyQuestions();
+      showScreen('capsule');
+      showToast('已提交审核');
+      setTimeout(() => {
+        state.questions[0].status = '已获得回答';
+        state.questions[0].answer = '这个问题让我想起自己 25 岁那年。如果真能和任何时代的人吃饭，我大概会选苏轼——问他在黄州是怎么把日子过成诗的。';
+        renderMyQuestions();
+        addMessage('你的问题收到了一个回答', '来自 Lisa Wang · 24 小时内评分', '刚刚');
+        openSheet('ratingSheet');
+      }, 4000);
+    });
+
+    // 评分
+    let currentRating = 0;
+    let selectedRateTags = [];
+    function paintRating(n) {
+      currentRating = n;
+      $$('.rate-star').forEach((s, i) => {
+        if (i < n) { s.classList.remove('text-charcoal/15'); s.classList.add('active'); }
+        else { s.classList.add('text-charcoal/15'); s.classList.remove('active'); }
+      });
+      const btn = $('#ratingSubmit');
+      btn.classList.toggle('bg-charcoal', n > 0);
+      btn.classList.toggle('bg-charcoal/30', n === 0);
+      btn.classList.toggle('cursor-not-allowed', n === 0);
+    }
+    $$('.rate-star').forEach(s => s.addEventListener('click', () => paintRating(+s.dataset.v)));
+    $$('.rate-tag').forEach(t => t.addEventListener('click', () => {
+      t.classList.toggle('active');
+      const tag = t.dataset.tag;
+      if (t.classList.contains('active')) selectedRateTags.push(tag);
+      else selectedRateTags = selectedRateTags.filter(x => x !== tag);
+    }));
+    $('#ratingSubmit').addEventListener('click', () => {
+      if (currentRating === 0) return;
+      closeSheets();
+      showToast('已评分 ' + currentRating + ' 星');
+      currentRating = 0;
+      selectedRateTags = [];
+      $$('.rate-star').forEach(s => { s.classList.add('text-charcoal/15'); s.classList.remove('active'); });
+      $$('.rate-tag').forEach(t => t.classList.remove('active'));
+    });
+
+    // 档案编辑保存
+    $('#editorSave').addEventListener('click', () => {
+      closeSheets();
+      state.mood = $('#editor .mood.active')?.dataset.mood || state.mood;
+      state.busy = $('#editBusy').value.trim();
+      state.music = $('#editMusic').value.trim();
+      state.film = $('#editFilm').value.trim();
+      state.brand = $('#editBrand').value.trim();
+      state.learn = $('#editLearn').value.trim();
+      updateStyleSummary();
+      renderProfileFields();
+      const el = $('#statusQuota');
+      let q = (+el.dataset.n || 1) + 1;
+      el.dataset.n = q;
+      el.textContent = q + ' 次';
+      const bonus = $('#bonusQuota');
+      bonus.textContent = (+bonus.textContent.replace(/\D/g, '') + 1) + ' 次';
+      showScreen('profile');
+      showToast('档案已更新 · 解锁 1 次提问');
+    });
+
+    function renderProfileFields() {
+      $('#profileFields').innerHTML = `
+        <div class="flex justify-between"><span class="text-charcoal/55">心情</span><span>${state.mood}</span></div>
+        <div class="flex justify-between"><span class="text-charcoal/55">在忙的事</span><span>${state.busy}</span></div>
+        <div class="flex justify-between"><span class="text-charcoal/55">最近常听</span><span>${state.music}</span></div>
+        <div class="flex justify-between"><span class="text-charcoal/55">最近在看</span><span>${state.film}</span></div>
+        <div class="flex justify-between"><span class="text-charcoal/55">品牌 / 风格</span><span>${state.brand}</span></div>
+        <div class="flex justify-between"><span class="text-charcoal/55">最近在学</span><span>${state.learn}</span></div>
+      `;
+    }
+    renderProfileFields();
+
+    // 问题接力
+    $('#relay').addEventListener('click', () => openSheet('relaySheet'));
+    $('#relaySubmit').addEventListener('click', () => {
+      const text = $('#relayText').value.trim();
+      if (!text) { showToast('写下你的回答'); return; }
+      closeSheets();
+      $('#relayText').value = '';
+      const ans = $('#relayAnswer');
+      ans.textContent = '“' + text + '”';
+      ans.classList.remove('hidden');
+      $('#relay').textContent = '已归档';
+      state.relayAnswers.unshift({
+        question: '3 月的你还在焦虑上岸，现在回头看，那场考试还重要吗？',
+        answer: text,
+        date: '刚刚'
+      });
+      showToast('已记录');
+    });
+
+    // 消息
+    $('#msgBell').addEventListener('click', () => $('#messages').classList.remove('hidden'));
+    $('#msgBack').addEventListener('click', () => $('#messages').classList.add('hidden'));
+    function addMessage(title, desc, time) {
+      const list = $('#messageList');
+      const item = document.createElement('div');
+      item.className = 'rounded-[20px] glass p-4 flex gap-3 shadow-sm fade-in';
+      item.innerHTML = `<div class="w-10 h-10 rounded-full aurora-bg grid place-items-center shrink-0 text-charcoal">✓</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[14px] font-medium">${title}</p>
+          <p class="text-xs text-charcoal/50 mt-0.5">${desc}</p>
+          <p class="text-[10px] text-noise-grey mt-1">${time}</p>
+        </div>`;
+      list.insertBefore(item, list.firstChild);
+    }
+
+    // Settings toggles
+    function toggleBtn(id) {
+      const btn = $(id);
+      const dot = btn.querySelector('span');
+      const on = btn.classList.contains('bg-lilac');
+      if (on) {
+        btn.classList.remove('bg-lilac');
+        btn.classList.add('bg-lilac/30');
+        dot.style.right = 'auto'; dot.style.left = '4px';
+      } else {
+        btn.classList.add('bg-lilac');
+        btn.classList.remove('bg-lilac/30');
+        dot.style.left = 'auto'; dot.style.right = '4px';
+      }
+    }
+    $('#pushToggle').addEventListener('click', () => toggleBtn('#pushToggle'));
+    $('#dndToggle').addEventListener('click', () => toggleBtn('#dndToggle'));
+    // Policies
+    const USER_AGREEMENT_TEXT = `半镜Hemispec — 用户协议
+生效日期：2026年09月12日最近更新：2026年09月12日
+
+一、协议总则
+欢迎你使用 半镜Hemispec（以下简称"本产品"或"半镜"）。本协议是你（以下简称"用户"）与【公司名称】（以下简称"我们"）之间关于使用半镜服务所订立的协议。
+请你在使用半镜前，仔细阅读并充分理解本协议的全部内容，特别是以加粗形式标注的免责条款、责任限制条款和争议解决条款。 当你点击"同意"、"注册"或开始使用半镜时，即表示你已阅读、理解并同意接受本协议的约束。如果你不同意本协议的任何条款，请立即停止使用半镜。
+
+二、账号注册与管理
+
+注册方式：你可以通过手机号+验证码或微信授权的方式注册半镜账号。注册时，你需要设置一个唯一的昵称（2-12个字符，支持中英文和数字，不支持特殊符号和Emoji）。
+
+账号唯一性：每个手机号或微信号仅可注册一个半镜账号。你应妥善保管你的账号信息，因账号保管不善导致的损失由你自行承担。
+
+账号注销：你有权随时申请注销账号。注销申请提交后将进入 7天冷静期，冷静期内登录将自动撤销注销。冷静期届满后，你的账号及所有数据将被永久删除且不可恢复。
+
+注销后重新注册：账号注销完成后，你可以使用原手机号重新注册，但将被视为全新用户，不会恢复任何历史数据。
+
+三、服务内容
+半镜是一款以"自我探索"为核心的数字化精神工具，主要提供以下功能：
+
+个人档案系统：你可以创建和维护个人档案，记录自身的状态、偏好和价值观。
+
+镜像对话：你可以向与你背景、经历、观点不同的人提出问题，获得来自"另一个世界"的回答。
+
+时光胶囊：你可以记录阶段性的自我状态，形成可视化的个人成长时间线。
+
+未来信：你可以向未来的自己写一封信，在设定的时间解锁。
+
+评分与反馈：你可以对镜像对话的回答进行评分，帮助我们优化匹配质量。
+我们保留随时修改、暂停或终止部分或全部服务的权利，并将通过App内通知等方式提前告知。
+
+四、用户行为规范
+在使用半镜时，你承诺遵守以下规范：
+
+合法合规：你的所有行为应遵守中华人民共和国法律法规，不得利用半镜从事任何违法活动。
+
+内容规范：你在档案、对话、胶囊、未来信等所有场景中发布的内容，不得包含以下信息：
+
+违反法律法规的内容（如涉黄、涉暴、涉政敏感等）；
+
+侵犯他人知识产权、隐私权、名誉权等合法权益的内容；
+
+虚假信息、恶意营销、垃圾广告；
+
+任何形式的骚扰、威胁、歧视性言论。
+
+尊重他人：在镜像对话中，你应尊重回答者的观点，不得进行人身攻击或恶意骚扰。
+
+真实与负责：我们鼓励你真实地表达自我，但你对自己发布的内容承担全部责任。
+如你违反上述规范，我们有权对相关内容进行删除、屏蔽，并对你的账号采取警告、限制功能、暂停使用或永久封禁等措施。
+
+五、知识产权
+
+平台知识产权：半镜的名称、Logo、界面设计、技术方案、算法模型等知识产权均归我们所有，受法律保护。未经书面许可，你不得复制、修改、反向工程或以任何方式使用。
+
+用户内容权利：你在半镜中创建的个人档案、对话内容、时光胶囊、未来信等原创内容，知识产权归你所有。
+
+内容授权：你同意授予我们在半镜服务范围内（包括但不限于镜像对话的展示、时光胶囊的存储与展示）使用你发布内容的权利。该授权在你注销账号后自动终止。
+
+六、免责声明
+
+非专业建议：半镜提供的内容（包括镜像对话中的回答）仅为个人观点和经验的分享，不构成任何专业建议（包括但不限于心理咨询、医疗诊断、法律意见、投资建议等）。如需专业帮助，请咨询具有相关资质的专业人士。
+
+内容准确性：我们无法保证镜像对话中回答者的回答的准确性、完整性或可靠性。回答者的观点不代表半镜的立场。
+
+服务可用性：因网络状况、系统维护、不可抗力等因素，半镜可能暂时无法使用，我们将尽力减少此类情况的发生。
+
+数据安全：我们采取行业通行的安全措施保护你的数据，但无法保证数据传输和存储的绝对安全。
+
+七、协议的变更与终止
+
+我们有权根据需要修改本协议的条款。修改后的协议将通过App内通知或公告的方式告知你。
+
+如你不同意修改后的条款，你有权停止使用半镜并注销账号。继续使用即视为同意修改后的条款。
+
+八、适用法律与争议解决
+
+本协议的订立、执行和解释均适用中华人民共和国法律。
+
+因本协议产生的任何争议，双方应首先友好协商解决。协商不成的，任何一方有权向【公司所在地】有管辖权的人民法院提起诉讼。
+
+九、联系方式
+如你对本协议有任何疑问、意见或建议，可通过以下方式联系我们：
+
+邮箱：【联系邮箱】
+
+地址：【公司地址】`;
+    const PRIVACY_POLICY_TEXT = `Mirror / 半镜 — 隐私政策
+生效日期：2026年09月12日最近更新：2026年09月12日
+
+引言
+半镜Hemispec（以下简称"本产品"或"半镜"）由【公司名称】（以下简称"我们"）运营。我们深知个人信息对你的重要性，并承诺以审慎、负责的态度保护你的隐私。本隐私政策旨在向你说明我们如何收集、使用、存储、共享和保护你的个人信息。
+请在使用半镜前仔细阅读本政策。当你开始使用半镜时，即表示你同意本政策所述的个人信息处理方式。
+
+一、我们收集的信息
+为了向你提供半镜的核心功能，我们可能收集以下信息：
+1.1 你主动提供的信息
+信息类型具体内容用途
+账号信息手机号、微信OpenID、昵称账号注册、登录与身份识别
+个人档案你填写的档案内容（状态、偏好、价值观等）用于镜像对话的匹配与展示
+对话内容你提出的问题、你收到的回答、你的评分提供镜像对话服务，优化匹配质量
+时光胶囊你记录的阶段性自我状态生成个人成长时间线
+未来信你写给未来自己的信件内容在设定时间向你展示
+反馈信息你对回答的评分、举报内容提升服务质量和内容安全
+
+1.2 我们自动收集的信息
+信息类型具体内容用途
+设备信息设备型号、操作系统版本、唯一设备标识符保障服务正常运行、安全风控
+日志信息访问时间、操作记录、崩溃日志服务优化、问题排查
+网络信息IP地址、网络类型基础安全与地域适配
+
+特别说明：我们不会收集你的通讯录、短信、通话记录等敏感权限信息。半镜不要求获取你的精确位置信息。
+
+二、我们如何使用你的信息
+我们收集的信息将用于以下目的：
+
+提供核心服务：创建和管理你的账号，提供档案、镜像对话、时光胶囊、未来信等功能。
+
+智能匹配：基于你的档案内容，为你匹配"与你完全不同"的回答者，实现镜像对话的核心价值。
+
+服务优化：通过分析使用数据和评分反馈，改进匹配算法和用户体验。
+
+安全保障：识别和防范欺诈、滥用等安全风险，维护平台秩序。
+
+合规义务：响应法律法规要求、司法程序或政府部门的合法请求。
+我们不会将你的个人档案内容用于广告投放或商业营销目的。
+
+三、信息的共享与披露
+我们高度重视你的隐私，承诺不会将你的个人信息出售给任何第三方。在以下情况下，我们可能共享你的信息：
+
+镜像对话场景：当你提出问题后，你的档案风格摘要（而非完整档案或昵称）将展示给回答者，以便回答者了解你的大致背景。回答者看到的仅是模糊化的描述（如"一个正在思考职业方向的人"），而非你的具体身份。
+
+服务提供商：我们可能将必要的信息提供给帮助我们运营服务的第三方（如云存储服务商、短信服务商），并要求其严格保密。
+
+法律要求：在法律法规要求、司法程序或政府部门依法要求的情况下，我们可能披露你的信息。
+
+征得你的同意：在其他任何共享场景下，我们都会事先征得你的明确同意。
+
+四、信息的存储与保护
+
+存储地点：你的个人信息存储于中华人民共和国境内的服务器。
+
+存储期限：
+
+账号存续期间，我们持续保存你的数据。
+
+账号注销后（冷静期届满），我们将在 30日内 对你的个人数据进行删除或匿名化处理。
+
+安全措施：我们采用行业通行的安全技术和管理措施保护你的信息，包括但不限于数据加密传输（HTTPS/TLS）、访问权限控制、安全审计等。
+
+安全事件响应：如不幸发生个人信息安全事件，我们将按照法律法规的要求及时向你告知。
+
+五、你的权利
+根据相关法律法规，你享有以下权利：
+
+访问权：你可以在App内随时查看你的个人档案、对话记录、时光胶囊和未来信。
+
+更正权：你可以随时修改你的个人档案和昵称。
+
+删除权：你可以删除特定的对话记录或时光胶囊条目。
+
+撤回同意权：你可以在系统设置中撤回对非必要权限的授权。
+
+注销权：你可以随时申请注销账号。注销后，你的所有数据将被永久删除。
+
+获取副本权：你可以向我们申请获取你的个人信息副本。
+如需行使上述权利，请通过本协议末尾的联系方式与我们联系。
+
+六、未成年人保护
+半镜面向年满 14周岁 的用户。我们不会故意收集未满14周岁未成年人的个人信息。如果你是未成年人的监护人，发现被监护人使用半镜时，请通过联系方式通知我们，我们将及时删除相关信息。
+
+七、第三方服务
+半镜可能集成以下第三方SDK或服务：
+第三方服务用途收集的信息
+微信OpenSDK微信授权登录微信OpenID、昵称、头像
+短信服务商发送验证码手机号
+云存储服务商数据存储必要的设备标识信息
+
+我们会对上述第三方进行安全评估，并要求其遵守相关的数据保护义务。
+
+八、本政策的更新
+我们可能适时修订本隐私政策。当政策发生重大变更时，我们将通过App内弹窗通知、公告等方式告知你，并在必要时重新征得你的同意。
+
+九、联系我们
+如你对本隐私政策有任何疑问、意见或建议，或希望行使你的个人信息权利，请通过以下方式联系我们：
+
+联系邮箱：781096333@qq.com
+
+我们将在收到你的请求后 15个工作日内 予以回复。`;
+    function openPolicy(title, text) {
+      $('#policyTitle').textContent = title;
+      $('#policyContent').innerHTML = text.split(/\n\n+/).map(p => `<p style="white-space: pre-line;">${p}</p>`).join('');
+      openSheet('policySheet');
+    }
+    $('#openUserAgreement').addEventListener('click', () => openPolicy('用户协议', USER_AGREEMENT_TEXT));
+    $('#openPrivacyPolicy').addEventListener('click', () => openPolicy('隐私政策', PRIVACY_POLICY_TEXT));
+
+    $('#logoutAccount').addEventListener('click', () => {
+      accountStore.clear();
+      closeSheets();
+      $$('.screen').forEach(s => s.classList.add('hidden'));
+      $('#splash').classList.remove('hidden');
+      $('#login').classList.add('hidden');
+      $('#onboarding').classList.add('hidden');
+      showToast('已退出账号');
+    });
+    $('#deleteAccount').addEventListener('click', () => {
+      if (!confirm('注销账号后进入 7 天冷静期，期间登录可恢复数据。确定继续？')) return;
+      const acc = accountStore.get();
+      if (!acc) { showToast('当前未登录'); return; }
+      const until = new Date();
+      until.setDate(until.getDate() + 7);
+      acc.status = 'cooling';
+      acc.coolingUntil = until.toISOString();
+      accountStore.set(acc);
+      closeSheets();
+      showToast('账号已申请注销，7 天冷静期内登录可恢复');
+    });
+  </script>
+</body>
+</html>
