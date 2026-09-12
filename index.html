@@ -260,6 +260,56 @@
       margin: 0 auto;
     }
 
+    /* Building sphere */
+    .building-sphere {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+      transform-style: preserve-3d;
+    }
+    .building-sphere .ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid rgba(212, 232, 224, 0.55);
+      animation: sphere-rotate 3s linear infinite;
+    }
+    .building-sphere .ring:nth-child(2) {
+      animation-duration: 4s;
+      animation-direction: reverse;
+      transform: rotateX(60deg);
+      border-color: rgba(200, 197, 230, 0.55);
+    }
+    .building-sphere .ring:nth-child(3) {
+      animation-duration: 5s;
+      transform: rotateY(60deg);
+      border-color: rgba(212, 232, 224, 0.35);
+    }
+    @keyframes sphere-rotate { to { transform: rotate(360deg); } }
+
+    /* Matching indicator */
+    .matching-indicator {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      margin: 0 auto;
+    }
+    .matching-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid rgba(200, 197, 230, 0.5);
+      animation: matching-pulse 2.2s ease-out infinite;
+    }
+    .matching-ring:nth-child(2) { animation-delay: 0.55s; }
+    .matching-ring:nth-child(3) { animation-delay: 1.1s; }
+    @keyframes matching-pulse {
+      0% { transform: scale(0.45); opacity: 0; }
+      40% { opacity: 1; }
+      100% { transform: scale(1.25); opacity: 0; }
+    }
+
     /* Notification panel */
     .notification-panel {
       position: absolute;
@@ -703,18 +753,16 @@
                   <div id="emptyAvatar" class="w-12 h-12 rounded-full aurora-bg grid place-items-center text-charcoal font-medium text-lg ring-2 ring-white">林</div>
                   <p class="text-[20px] font-light tracking-tight">你好，<span id="emptyName">小林</span></p>
                 </div>
-                <div class="empty-illustration">✦</div>
-                <p class="text-[17px] font-light tracking-tight mt-6">你的第一封胶囊已封存</p>
-                <p class="text-charcoal/55 mt-2 leading-relaxed">时间会替你保管。</p>
-                <div class="grid grid-cols-2 gap-3 w-full mt-8">
-                  <button id="emptyWriteMore" class="rounded-2xl glass p-4 text-left transition hover:bg-white/80">
-                    <p class="text-[15px] font-medium">再写一封</p>
-                    <p class="text-[12px] text-charcoal/50 mt-1">继续记录此刻</p>
-                  </button>
-                  <button id="emptyGoMirror" class="rounded-2xl glass p-4 text-left transition hover:bg-white/80">
-                    <p class="text-[15px] font-medium">去镜像对话</p>
-                    <p class="text-[12px] text-charcoal/50 mt-1">和不同的人交换问题</p>
-                  </button>
+                <div class="building-sphere" aria-hidden="true">
+                  <div class="ring"></div>
+                  <div class="ring"></div>
+                  <div class="ring"></div>
+                </div>
+                <p class="text-[17px] font-light tracking-tight mt-6">正在为你生成第一份档案…</p>
+                <p class="text-[14px] text-charcoal/55 mt-2 leading-relaxed">你的时光胶囊已封存，时间会替你保管</p>
+                <div class="w-full mt-8 space-y-3">
+                  <button id="emptyWriteFirst" class="w-full h-12 rounded-full bg-charcoal text-white font-medium text-[15px] transition hover:shadow-medium">写下第一封时光胶囊</button>
+                  <button id="emptyFutureSelf" class="text-[14px] text-charcoal/60 hover:text-charcoal transition underline underline-offset-4">写给未来的自己</button>
                 </div>
               </div>
             </div>
@@ -805,8 +853,24 @@
               <p class="text-sm text-charcoal/55 mt-1 leading-relaxed">每天回答一个来自“和你完全不一样的人”的提问。</p>
             </div>
 
+            <!-- Waiting state for new/re-engaged users -->
+            <div id="mirrorWaitingState" class="hidden flex flex-col items-center text-center py-8">
+              <div class="matching-indicator" aria-hidden="true">
+                <div class="matching-ring"></div>
+                <div class="matching-ring"></div>
+                <div class="matching-ring"></div>
+              </div>
+              <p class="text-[18px] font-light tracking-tight mt-6">正在为你匹配…</p>
+              <p class="text-[14px] text-charcoal/55 mt-2">你的问题已通过审核，正在匹配中</p>
+              <div id="mirrorNoQuestionPrompt" class="hidden mt-6 rounded-2xl glass p-5 max-w-xs">
+                <p class="text-sm text-charcoal/70 leading-relaxed">先去时光胶囊写下第一封档案，解锁首次提问资格</p>
+                <button id="mirrorGoCapsule" class="btn-primary w-full mt-4 h-11 text-sm">去时光胶囊</button>
+              </div>
+              <p class="text-sm text-charcoal/50 mt-8">暂无回答</p>
+            </div>
+
             <!-- 今日问题 -->
-            <div id="todayCard" class="rounded-[24px] glass p-6 shadow-soft">
+            <div id="mirrorTodayCard" class="rounded-[24px] glass p-6 shadow-soft">
               <div class="flex items-center justify-between mb-4">
                 <p class="text-xs text-noise-grey">今日问题</p>
                 <span id="qStateChip" class="px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/60 text-charcoal ring-1 ring-white">待回答</span>
@@ -836,32 +900,32 @@
             </div>
 
             <!-- 我的回答 -->
-            <div>
+            <div id="mirrorAnswerHistoryWrap">
               <h3 class="text-lg font-medium tracking-tight mb-3">我的回答</h3>
               <div id="answerHistory" class="space-y-3"></div>
             </div>
 
             <!-- 评分反馈 -->
-            <div class="rounded-[24px] glass p-6">
+            <div id="mirrorRatingFeedback" class="rounded-[24px] glass p-6">
               <h3 class="text-lg font-medium tracking-tight mb-4">评分反馈 · 本月</h3>
               <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="rounded-2xl bg-white/40 p-4">
                   <p class="text-xs text-noise-grey">平均评分</p>
-                  <p class="text-2xl font-light mt-1">4.6<span class="text-base text-charcoal/40">/5</span></p>
+                  <p class="text-2xl font-light mt-1" id="mirrorAvgScore">4.6<span class="text-base text-charcoal/40">/5</span></p>
                 </div>
                 <div class="rounded-2xl bg-white/40 p-4">
                   <p class="text-xs text-noise-grey">获得 5 星</p>
-                  <p class="text-2xl font-light mt-1">3<span class="text-base text-charcoal/40"> 次</span></p>
+                  <p class="text-2xl font-light mt-1" id="mirrorFiveStarCount">3<span class="text-base text-charcoal/40"> 次</span></p>
                 </div>
               </div>
               <div class="mb-2 flex items-center justify-between text-xs">
                 <span class="text-charcoal/60">特权进度</span>
-                <span class="text-charcoal">3 / 5 个 5 星</span>
+                <span class="text-charcoal" id="mirrorPrivilegeProgress">3 / 5 个 5 星</span>
               </div>
               <div class="h-2 bg-charcoal/10 rounded-full overflow-hidden">
-                <div class="h-full bg-lilac rounded-full transition-all duration-500" style="width: 60%"></div>
+                <div id="mirrorPrivilegeBar" class="h-full bg-lilac rounded-full transition-all duration-500" style="width: 60%"></div>
               </div>
-              <p class="text-xs text-noise-grey mt-3 leading-relaxed">本月回答了 8 个问题，平均 4.6 星。再获得 2 个 5 星可解锁额外提问额度。</p>
+              <p class="text-xs text-noise-grey mt-3 leading-relaxed" id="mirrorFeedbackText">本月回答了 8 个问题，平均 4.6 星。再获得 2 个 5 星可解锁额外提问额度。</p>
               <button data-open="guideSheet" class="btn-soft mt-4 text-xs">查看回答指南</button>
             </div>
           </section>
@@ -872,20 +936,22 @@
             <div class="text-center py-4">
               <div class="w-20 h-20 rounded-full aurora-bg mx-auto grid place-items-center text-2xl font-light text-charcoal ring-4 ring-white shadow-soft" id="profileAvatar">林</div>
               <h2 class="text-2xl font-light tracking-tight mt-4" id="profileName">小林</h2>
-              <p class="text-sm text-charcoal/50 mt-1">共7份记录</p>
+              <p class="text-sm text-charcoal/50 mt-1">共 <span id="profileRecordCount">7</span> 份记录</p>
             </div>
 
-            <div class="rounded-[24px] glass p-5 space-y-3">
-              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">本月提问额度</span><span id="statusQuota" data-n="1" class="font-medium">1 次</span></div>
-              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">奖励额度</span><span id="bonusQuota" class="font-medium">1 次</span></div>
-              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">回答质量分</span><span class="font-medium">4.6 / 5</span></div>
-              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">账户状态</span><span class="font-medium">正常</span></div>
+            <div id="profileStatsCard" class="rounded-[24px] glass p-5 space-y-3">
+              <div id="profileStatArchiveRow" class="flex justify-between text-[15px]"><span class="text-charcoal/55">档案数量</span><span id="profileArchiveCount" class="font-medium">0</span></div>
+              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55" id="profileQuotaLabel">本月提问额度</span><span id="profileQuota" data-n="1" class="font-medium">1 次</span></div>
+              <div id="profileStatBonusRow" class="flex justify-between text-[15px]"><span class="text-charcoal/55">奖励额度</span><span id="profileBonus" class="font-medium">1 次</span></div>
+              <div class="flex justify-between text-[15px]"><span class="text-charcoal/55">回答质量分</span><span id="profileQuality" class="font-medium">4.6 / 5</span></div>
+              <div id="profileStatFiveStarsRow" class="flex justify-between text-[15px]"><span class="text-charcoal/55">获得 5 星次数</span><span id="profileFiveStars" class="font-medium">3 次</span></div>
+              <div id="profileStatAccountRow" class="flex justify-between text-[15px]"><span class="text-charcoal/55">账户状态</span><span id="profileAccountStatus" class="font-medium">正常</span></div>
             </div>
 
             <div class="rounded-[24px] glass p-5">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-medium tracking-tight">当前档案</h3>
-                <button data-open="editor" class="text-xs text-charcoal/60 hover:text-charcoal transition">编辑</button>
+                <button id="profileEditBtn" data-open="editor" class="text-xs text-charcoal/60 hover:text-charcoal transition">编辑</button>
               </div>
               <div class="space-y-3 text-[15px]" id="profileFields">
                 <div class="flex justify-between"><span class="text-charcoal/55">心情</span><span>平静</span></div>
@@ -897,7 +963,15 @@
               </div>
             </div>
 
-            <div class="rounded-[24px] glass p-5 space-y-2">
+            <div id="profileFunctionList" class="rounded-[24px] glass p-5 space-y-2">
+              <button id="profileFutureLetters" class="w-full flex items-center justify-between py-2 text-left">
+                <span class="text-[15px]">未来信管理</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+              <button id="profileMyQuestions" data-open="myQuestionsSheet" class="w-full flex items-center justify-between py-2 text-left">
+                <span class="text-[15px]">我的提问</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
               <button data-open="settingsSheet" class="w-full flex items-center justify-between py-2 text-left">
                 <span class="text-[15px]">设置</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6l6 6-6 6"/></svg>
@@ -1420,7 +1494,7 @@
         t.querySelector('svg').setAttribute('stroke-width', activeTab ? '1.9' : '1.7');
       });
       $('#scroller').scrollTop = 0;
-      $('#fab').classList.toggle('hidden', name !== 'mirror' && name !== 'capsule');
+      renderRoleBasedUI();
     }
     tabs.forEach(t => t.addEventListener('click', () => showScreen(t.dataset.tab)));
 
@@ -1469,7 +1543,7 @@
     // Active user data loading fallback
     function loadActiveData() {
       const acc = accountStore.get();
-      if (!acc || acc.userStatus !== 'ACTIVE') { renderHomeState(); return; }
+      if (!acc || !acc.user || acc.user.userStatus !== 'ACTIVE') { renderRoleBasedUI(); return; }
       $('#dataFallback').classList.add('hidden');
       $('#ptrIndicator').classList.add('visible');
       setTimeout(() => {
@@ -1479,6 +1553,7 @@
         } else {
           renderHomeState();
         }
+        renderRoleBasedUI();
       }, 800);
     }
     $('#dataFallbackRetry').addEventListener('click', loadActiveData);
@@ -1661,8 +1736,14 @@
           $('#sealingOverlay').classList.remove('active');
           closeSheets();
           $('#onboarding').classList.add('hidden');
+          const acc = accountStore.get();
+          if (acc && acc.user) {
+            acc.user.userStatus = 'ACTIVE';
+            accountStore.set(acc);
+          }
           renderHomeState();
           goToApp(true);
+          renderRoleBasedUI();
           showToast('第一封胶囊已封存');
         }, 1200);
         return;
@@ -1765,7 +1846,7 @@
       state.busy = $('#obBusy').value.trim() || '在准备马拉松比赛';
       state.tags = selectedObTags.length > 0 ? selectedObTags : state.tags;
       updateUserInfo();
-      renderHomeState();
+      renderRoleBasedUI();
       showToast('欢迎来到半镜 · 问题审核中');
     }
     function openFirstCapsuleSheet() {
@@ -1828,9 +1909,7 @@
       updateStyleSummary();
     }
     function renderHomeState() {
-      const acc = accountStore.get();
-      const isNewLike = acc && (acc.userStatus === 'NEW' || acc.userStatus === 'REENGAGED');
-      const empty = isNewLike && ARCHIVES.length === 0;
+      const empty = isNewLikeUser() || ARCHIVES.length === 0;
       $('#capsuleEmpty').classList.toggle('active', empty);
       $('#capsuleHome').classList.toggle('hidden', empty);
       if (!empty) {
@@ -1839,13 +1918,15 @@
         updateArchiveCount();
       }
     }
-    $('#emptyWriteMore').addEventListener('click', () => {
+    $('#emptyWriteFirst').addEventListener('click', () => {
       const now = new Date();
       $('#archiveDate').textContent = now.toISOString().slice(0, 10);
       resetArchiveForm();
       openSheet('updateArchiveSheet');
     });
-    $('#emptyGoMirror').addEventListener('click', () => showScreen('mirror'));
+    $('#emptyFutureSelf').addEventListener('click', () => showToast('未来信功能即将开放'));
+    $('#mirrorGoCapsule').addEventListener('click', () => showScreen('capsule'));
+    $('#profileFutureLetters').addEventListener('click', () => showToast('未来信管理即将开放'));
 
     // Splash
     function adjustLoginHeadline() {
@@ -1908,8 +1989,109 @@
     }
     function track(event, params = {}) {
       const acc = accountStore.get();
-      if (acc && acc.userStatus) params.user_type = acc.userStatus;
+      if (acc && acc.user && acc.user.userStatus) params.user_type = acc.user.userStatus;
       console.log('[TRACK]', event, params);
+    }
+
+    function isNewLikeUser() {
+      const acc = accountStore.get();
+      return !!(acc && acc.user && (acc.user.userStatus === 'NEW' || acc.user.userStatus === 'REENGAGED'));
+    }
+
+    function updateGlobalFab() {
+      const newLike = isNewLikeUser();
+      const show = (currentTab === 'mirror' || currentTab === 'capsule') && !newLike;
+      $('#fab').classList.toggle('hidden', !show);
+    }
+
+    function computeAvgScore() {
+      if (!state.answerHistory.length) return 0;
+      const sum = state.answerHistory.reduce((a, h) => a + (h.score || 0), 0);
+      return sum / state.answerHistory.length;
+    }
+    function computeFiveStarCount() {
+      return state.answerHistory.filter(h => h.score === 5).length;
+    }
+
+    function renderMirrorStats() {
+      const avg = computeAvgScore();
+      const fiveStars = computeFiveStarCount();
+      const answered = state.answerHistory.length;
+      $('#mirrorAvgScore').innerHTML = (avg > 0 ? avg.toFixed(1) : '4.6') + '<span class="text-base text-charcoal/40">/5</span>';
+      $('#mirrorFiveStarCount').innerHTML = fiveStars + '<span class="text-base text-charcoal/40"> 次</span>';
+      $('#mirrorPrivilegeProgress').textContent = fiveStars + ' / 5 个 5 星';
+      $('#mirrorPrivilegeBar').style.width = Math.min(100, (fiveStars / 5) * 100) + '%';
+      const next = Math.max(0, 5 - fiveStars);
+      $('#mirrorFeedbackText').textContent = answered > 0
+        ? `本月回答了 ${answered} 个问题，平均 ${avg > 0 ? avg.toFixed(1) : '4.6'} 星。再获得 ${next} 个 5 星可解锁额外提问额度。`
+        : '本月还没有回答。回答一个问题即可开始积累评分。';
+    }
+
+    function renderProfile() {
+      const newLike = isNewLikeUser();
+      const archiveCount = ARCHIVES.length;
+      $('#profileRecordCount').textContent = archiveCount;
+      $('#profileArchiveCount').textContent = archiveCount;
+      const avg = computeAvgScore();
+      const fiveStars = computeFiveStarCount();
+
+      if (newLike) {
+        $('#profileStatArchiveRow').classList.remove('hidden');
+        $('#profileQuotaLabel').textContent = '提问额度';
+        $('#profileQuota').textContent = '1/1';
+        $('#profileQuality').textContent = '暂无数据';
+        $('#profileStatBonusRow').classList.add('hidden');
+        $('#profileStatFiveStarsRow').classList.add('hidden');
+        $('#profileStatAccountRow').classList.add('hidden');
+        $('#profileFutureLetters').classList.add('hidden');
+        $('#profileMyQuestions').classList.add('hidden');
+        $('#profileEditBtn').classList.add('hidden');
+      } else {
+        $('#profileStatArchiveRow').classList.add('hidden');
+        $('#profileQuotaLabel').textContent = '本月提问额度';
+        $('#profileQuota').textContent = $('#statusQuota').textContent;
+        $('#profileBonus').textContent = $('#bonusQuota').textContent;
+        $('#profileQuality').textContent = avg > 0 ? avg.toFixed(1) + ' / 5' : '4.6 / 5';
+        $('#profileFiveStars').textContent = fiveStars + ' 次';
+        $('#profileAccountStatus').textContent = '正常';
+        $('#profileStatBonusRow').classList.remove('hidden');
+        $('#profileStatFiveStarsRow').classList.remove('hidden');
+        $('#profileStatAccountRow').classList.remove('hidden');
+        $('#profileFutureLetters').classList.remove('hidden');
+        $('#profileMyQuestions').classList.remove('hidden');
+        $('#profileEditBtn').classList.remove('hidden');
+      }
+    }
+
+    function renderRoleBasedUI() {
+      renderHomeState();
+      const newLike = isNewLikeUser();
+      updateGlobalFab();
+
+      // Mirror Talk
+      const waiting = $('#mirrorWaitingState');
+      const todayCard = $('#mirrorTodayCard');
+      const answerBox = $('#answerBox');
+      const answerHistoryWrap = $('#mirrorAnswerHistoryWrap');
+      const ratingFeedback = $('#mirrorRatingFeedback');
+      if (newLike) {
+        waiting.classList.remove('hidden');
+        todayCard.classList.add('hidden');
+        answerBox.classList.add('hidden');
+        answerHistoryWrap.classList.add('hidden');
+        ratingFeedback.classList.add('hidden');
+        $('#mirrorNoQuestionPrompt').classList.toggle('hidden', state.questions.length > 0);
+      } else {
+        waiting.classList.add('hidden');
+        todayCard.classList.remove('hidden');
+        answerHistoryWrap.classList.remove('hidden');
+        ratingFeedback.classList.remove('hidden');
+        renderAnswerHistory();
+        renderMirrorStats();
+      }
+
+      // Profile
+      renderProfile();
     }
 
     // Lifecycle navigation helpers
@@ -1947,15 +2129,15 @@
       });
       currentTab = 'capsule';
       $('#scroller').scrollTop = 0;
-      $('#fab').classList.remove('hidden');
       const acc = accountStore.get();
-      if (acc && acc.userStatus === 'ACTIVE') {
+      if (acc && acc.user && acc.user.userStatus === 'ACTIVE') {
         setBellDot(true);
         loadActiveData();
       } else {
         setBellDot(false);
         renderHomeState();
       }
+      renderRoleBasedUI();
     }
 
     // Login
