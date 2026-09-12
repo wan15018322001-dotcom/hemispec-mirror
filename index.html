@@ -619,7 +619,7 @@
             </div>
 
             <div class="ob-step" data-step="2">
-              <p class="text-xs font-mono text-noise-grey mb-4">03 / 08</p>
+              <p class="text-xs font-mono text-noise-grey mb-4">03 / 07</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">选 3-5 个标签</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">你最近在关注什么？选至少 3 个，最多 5 个。</p>
               <div class="mt-8">
@@ -634,19 +634,7 @@
             </div>
 
             <div class="ob-step" data-step="3">
-              <p class="text-xs font-mono text-noise-grey mb-4">04 / 08</p>
-              <h2 class="text-[28px] font-light leading-tight tracking-tight">上传代表照</h2>
-              <p class="text-charcoal/55 mt-3 leading-relaxed">可选。这张照片只出现在你的时光胶囊里。</p>
-              <div class="mt-10">
-                <div id="photoUpload" class="w-full h-40 rounded-2xl glass border-2 border-dashed border-charcoal/20 flex flex-col items-center justify-center text-charcoal/40 cursor-pointer transition hover:bg-white/50">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg>
-                  <p class="text-sm mt-2">点击选择照片</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="ob-step" data-step="4">
-              <p class="text-xs font-mono text-noise-grey mb-4">05 / 08</p>
+              <p class="text-xs font-mono text-noise-grey mb-4">04 / 07</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">取个昵称</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">2-12 个字符，会在镜像对话中展示。</p>
               <div class="mt-10">
@@ -655,8 +643,8 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="5">
-              <p class="text-xs font-mono text-noise-grey mb-4">06 / 08</p>
+            <div class="ob-step" data-step="4">
+              <p class="text-xs font-mono text-noise-grey mb-4">05 / 07</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">给未来留封信</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">一年后的今天，寄回给你。可选。</p>
               <div class="mt-10">
@@ -664,8 +652,8 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="6">
-              <p class="text-xs font-mono text-noise-grey mb-4">07 / 08</p>
+            <div class="ob-step" data-step="5">
+              <p class="text-xs font-mono text-noise-grey mb-4">06 / 07</p>
               <h2 class="text-[28px] font-light leading-tight tracking-tight">第一次提问</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">有什么问题想问一个和你完全不一样的人？</p>
               <div class="mt-8">
@@ -676,7 +664,7 @@
               </div>
             </div>
 
-            <div class="ob-step" data-step="7">
+            <div class="ob-step" data-step="6">
               <div class="text-center">
                 <div class="mx-auto w-16 h-16 rounded-full aurora-bg grid place-items-center text-3xl shadow-soft">✦</div>
                 <h2 class="text-[28px] font-light leading-tight mt-8">准备好了</h2>
@@ -1810,12 +1798,12 @@
     });
 
     let obStep = 0;
-    const total = 8;
+    const total = 7;
     const obSteps = $$('.ob-step');
     function renderOb() {
       obSteps.forEach(s => s.classList.toggle('active', +s.dataset.step === obStep));
       $('#obBack').classList.toggle('hidden', obStep === 0);
-      $('#obNext').textContent = obStep === total - 1 ? '封存我的第一封胶囊' : '下一步';
+      $('#obNext').textContent = obStep === total - 1 ? '完成' : '下一步';
     }
     function finishOb() {
       $('#onboarding').classList.add('hidden');
@@ -1839,7 +1827,7 @@
       openSheet('updateArchiveSheet');
     }
     $('#obNext').addEventListener('click', () => {
-      if (obStep === 4) {
+      if (obStep === 3) {
         const nick = $('#obNickname').value.trim();
         if (!nick) { showToast('请输入昵称'); return; }
         if (nick.length < 2 || nick.length > 12) { showToast('昵称需 2-12 个字符'); return; }
@@ -1847,7 +1835,7 @@
       if (obStep === 2 && selectedObTags.length > 0 && selectedObTags.length < 3) {
         showToast('请至少选择 3 个标签'); return;
       }
-      if (obStep === 6) {
+      if (obStep === 5) {
         const q = $('#obQuestion').value.trim();
         if (q.length < 15) { showToast('问题至少 15 字'); return; }
         state.questions.unshift({ text: q, status: '审核中', date: '刚刚' });
@@ -1871,7 +1859,6 @@
       b.classList.add('active');
     }));
 
-    $('#photoUpload').addEventListener('click', () => showToast('照片上传为演示占位'));
     $$('.example-q').forEach(el => el.addEventListener('click', () => {
       $('#obQuestion').value = el.textContent.replace(/[“”]/g, '');
     }));
