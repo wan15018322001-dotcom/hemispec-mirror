@@ -1,0 +1,5 @@
+api/node_modules/
+api/data.json
+api/data.sqlite
+api/.env
+.DS_Store

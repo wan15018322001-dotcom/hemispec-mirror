@@ -412,47 +412,45 @@
           </div>
 
           <div class="flex-1 overflow-y-auto hide-scroll px-7 pt-6 pb-8 flex flex-col">
-            <div class="mb-10">
+            <div class="mb-8">
               <p class="text-xs font-mono text-charcoal/45 tracking-[0.2em] mb-3">HEMISPEC</p>
               <h2 id="loginHeadline" class="text-[30px] font-light leading-tight tracking-tight">你好</h2>
               <p id="loginSubhead" class="text-charcoal/55 mt-2 leading-relaxed">欢迎来到半镜。</p>
             </div>
 
-            <div class="mt-auto space-y-4">
+            <div class="flex gap-2 mb-6 p-1 rounded-full bg-bg-secondary">
+              <button id="tabLogin" class="flex-1 h-9 rounded-full text-[13px] font-medium transition bg-charcoal text-white">登录</button>
+              <button id="tabRegister" class="flex-1 h-9 rounded-full text-[13px] font-medium transition text-charcoal">注册</button>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-[13px] text-charcoal/70 mb-2">用户名</label>
+                <input id="authUsername" type="text" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="2-20个字符" maxlength="20" />
+              </div>
+              <div>
+                <label class="block text-[13px] text-charcoal/70 mb-2">密码</label>
+                <input id="authPassword" type="password" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="至少8位，含字母和数字" />
+              </div>
+              <div id="confirmPasswordWrap" class="hidden">
+                <label class="block text-[13px] text-charcoal/70 mb-2">确认密码</label>
+                <input id="authConfirm" type="password" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="再次输入密码" />
+              </div>
+
+              <p id="loginError" class="text-xs text-red-500 hidden"></p>
+
+              <button id="authAction" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">登录</button>
+
               <button id="wechatLogin" class="w-full h-12 rounded-full bg-[#07C160] text-white font-medium text-[15px] transition hover:shadow-medium flex items-center justify-center gap-2">
                 <span class="w-5 h-5 rounded-full bg-white/25 grid place-items-center text-xs">微</span>
                 微信一键登录
-              </button>
-
-              <div id="phoneForm" class="hidden space-y-4">
-                <div>
-                  <label class="block text-[13px] text-charcoal/70 mb-2">手机号</label>
-                  <input id="phone" type="tel" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="请输入手机号" maxlength="11" />
-                </div>
-                <div>
-                  <label class="block text-[13px] text-charcoal/70 mb-2">验证码</label>
-                  <div class="flex gap-3">
-                    <input id="code" type="tel" class="login-input flex-1 h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="6位验证码" maxlength="6" />
-                    <button id="getCode" class="shrink-0 h-11 px-4 rounded-[10px] glass text-[13px] font-medium transition hover:bg-white/80">获取验证码</button>
-                  </div>
-                  <p id="codeError" class="text-xs text-red-500 mt-2 hidden">验证码错误，请重试</p>
-                </div>
-                <button id="loginAction" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">登录</button>
-              </div>
-
-              <button id="showPhoneForm" class="w-full h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">
-                手机号登录
-              </button>
-
-              <button id="hidePhoneForm" class="hidden w-full h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">
-                返回微信登录
               </button>
             </div>
 
             <div class="mt-6">
               <label class="flex items-start gap-2 cursor-pointer">
                 <input id="agree" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
-                <span class="text-xs text-charcoal/50 leading-relaxed">登录即代表同意《用户协议》与《隐私政策》</span>
+                <span class="text-xs text-charcoal/50 leading-relaxed">登录/注册即代表同意《用户协议》与《隐私政策》</span>
               </label>
             </div>
           </div>
@@ -1330,6 +1328,58 @@
       }, 1800);
     }
 
+    // API helpers
+    // 本地开发使用 localhost:3000；部署后请将 hemispec_api_url 写入 localStorage，或修改下方默认值
+    const API_BASE_URL = localStorage.getItem('hemispec_api_url') || 'http://localhost:3000';
+    function getToken() { return localStorage.getItem('hemispec_token'); }
+    function setToken(token) { localStorage.setItem('hemispec_token', token); }
+    function clearToken() { localStorage.removeItem('hemispec_token'); }
+    async function api(path, options = {}) {
+      const url = API_BASE_URL + path;
+      const opts = { ...options, headers: { ...(options.headers || {}) } };
+      const token = getToken();
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      if (options.body && typeof options.body === 'string' && !opts.headers['Content-Type']) {
+        opts.headers['Content-Type'] = 'application/json';
+      }
+      const res = await fetch(url, opts);
+      const text = await res.text();
+      let data = null;
+      if (text) {
+        try { data = JSON.parse(text); } catch { data = { message: text }; }
+      }
+      if (!res.ok) {
+        const msg = data?.message || data?.error || `请求失败 (${res.status})`;
+        const err = new Error(msg);
+        err.status = res.status;
+        err.data = data;
+        throw err;
+      }
+      return data;
+    }
+
+    // OAuth callback handler (WeChat redirect: ?token=xxx&userStatus=yyy)
+    async function handleOAuthCallback() {
+      const params = new URLSearchParams(location.search);
+      const token = params.get('token');
+      if (!token) return;
+      setToken(token);
+      const url = new URL(location.href);
+      url.search = '';
+      history.replaceState(null, '', url.toString());
+      try {
+        const data = await api('/api/user/me');
+        routeUser(data.user, 'wechat');
+      } catch (err) {
+        console.error(err);
+        clearToken();
+        showToast('登录失败，请重试');
+        $('#splash').classList.remove('hidden');
+        $('#login').classList.add('hidden');
+      }
+    }
+    handleOAuthCallback();
+
     // App state
     const state = {
       nickname: '小林',
@@ -1799,26 +1849,25 @@
 
     // Splash
     function adjustLoginHeadline() {
-      const acc = accountStore.get();
-      const now = Date.now();
-      const isReturning = acc && acc.status === 'active' && acc.userStatus === 'ACTIVE';
-      $('#loginHeadline').textContent = isReturning ? '欢迎回来' : '你好';
-      $('#loginSubhead').textContent = isReturning ? '思维把上一段自己，轻轻推了回来。' : '欢迎来到半镜。';
+      const token = getToken();
+      $('#loginHeadline').textContent = token ? '欢迎回来' : '你好';
+      $('#loginSubhead').textContent = token ? '思维把上一段自己，轻轻推了回来。' : '欢迎来到半镜。';
     }
-    $('#enterBtn').addEventListener('click', () => {
-      const acc = accountStore.get();
-      const now = Date.now();
+    $('#enterBtn').addEventListener('click', async () => {
       adjustLoginHeadline();
-      if (acc && acc.status === 'active') {
-        if (!acc.userStatus) { acc.userStatus = 'ACTIVE'; accountStore.set(acc); }
-        goToApp(true);
-        return;
-      }
-      if (acc && acc.status === 'cooling' && new Date(acc.coolingUntil).getTime() > now) {
+      const token = getToken();
+      if (token) {
         $('#splash').classList.add('hidden');
-        $('#login').classList.remove('hidden');
-        $('#login').style.display = '';
-        track('login_page_view', { scenario: 'cooling' });
+        try {
+          const data = await api('/api/user/me');
+          routeUser(data.user, 'auto');
+        } catch (err) {
+          console.error(err);
+          clearToken();
+          $('#login').classList.remove('hidden');
+          $('#login').style.display = '';
+          track('login_page_view', { scenario: 'token_expired' });
+        }
         return;
       }
       $('#splash').classList.add('hidden');
@@ -1910,138 +1959,133 @@
     }
 
     // Login
-    const phone = $('#phone'), code = $('#code'), getCode = $('#getCode'), loginAction = $('#loginAction'), agree = $('#agree');
-    const codeError = $('#codeError'), showPhoneForm = $('#showPhoneForm'), hidePhoneForm = $('#hidePhoneForm'), phoneForm = $('#phoneForm');
-    function validatePhone(v) { return /^1[3-9]\d{9}$/.test(v); }
-    function validateCode(v) { return /^\d{6}$/.test(v); }
-    function updateLoginBtn() {
-      const ok = validatePhone(phone.value) && validateCode(code.value) && agree.checked;
-      loginAction.classList.toggle('bg-charcoal', ok);
-      loginAction.classList.toggle('bg-charcoal/30', !ok);
-      loginAction.classList.toggle('cursor-not-allowed', !ok);
+    const authUsername = $('#authUsername'), authPassword = $('#authPassword'), authConfirm = $('#authConfirm');
+    const authAction = $('#authAction'), agree = $('#agree'), loginError = $('#loginError');
+    let authMode = 'login';
+
+    function validateUsername(v) { const len = Array.from(v.trim()).length; return len >= 2 && len <= 20; }
+    function validatePassword(v) { return /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(v); }
+    function showAuthError(msg) {
+      loginError.textContent = msg;
+      loginError.classList.remove('hidden');
     }
-    phone.addEventListener('input', () => {
-      phone.value = phone.value.replace(/\D/g, '').slice(0, 11);
-      updateLoginBtn();
-    });
-    code.addEventListener('input', () => {
-      code.value = code.value.replace(/\D/g, '').slice(0, 6);
-      codeError.classList.add('hidden');
-      code.classList.remove('shake', 'border-red-400');
-      updateLoginBtn();
-    });
-    agree.addEventListener('change', updateLoginBtn);
-    showPhoneForm.addEventListener('click', () => {
-      phoneForm.classList.remove('hidden');
-      showPhoneForm.classList.add('hidden');
-      hidePhoneForm.classList.remove('hidden');
-      $('#wechatLogin').classList.add('hidden');
-    });
-    hidePhoneForm.addEventListener('click', () => {
-      phoneForm.classList.add('hidden');
-      showPhoneForm.classList.remove('hidden');
-      hidePhoneForm.classList.add('hidden');
-      $('#wechatLogin').classList.remove('hidden');
-    });
-    let codeTimer = null;
-    getCode.addEventListener('click', () => {
-      if (!validatePhone(phone.value)) { showToast('请输入正确手机号'); return; }
-      if (codeTimer) return;
-      let sec = 60;
-      getCode.textContent = `${sec}s`;
-      getCode.classList.add('opacity-60', 'cursor-not-allowed');
-      codeTimer = setInterval(() => {
-        sec--;
-        if (sec <= 0) {
-          clearInterval(codeTimer); codeTimer = null;
-          getCode.textContent = '获取验证码';
-          getCode.classList.remove('opacity-60', 'cursor-not-allowed');
+    function setAuthMode(mode) {
+      authMode = mode;
+      $('#tabLogin').classList.toggle('bg-charcoal', mode === 'login');
+      $('#tabLogin').classList.toggle('text-white', mode === 'login');
+      $('#tabLogin').classList.toggle('text-charcoal', mode !== 'login');
+      $('#tabRegister').classList.toggle('bg-charcoal', mode === 'register');
+      $('#tabRegister').classList.toggle('text-white', mode === 'register');
+      $('#tabRegister').classList.toggle('text-charcoal', mode !== 'register');
+      $('#confirmPasswordWrap').classList.toggle('hidden', mode === 'login');
+      authAction.textContent = mode === 'login' ? '登录' : '注册';
+      $('#loginHeadline').textContent = mode === 'login' ? '欢迎回来' : '创建账号';
+      $('#loginSubhead').textContent = mode === 'login' ? '思维把上一段自己，轻轻推了回来。' : '欢迎来到半镜。';
+      loginError.classList.add('hidden');
+      validateAuth();
+    }
+    function validateAuth() {
+      const userOk = validateUsername(authUsername.value);
+      const passOk = validatePassword(authPassword.value);
+      const confirmOk = authMode !== 'register' || (authConfirm.value === authPassword.value && authConfirm.value !== '');
+      const ok = userOk && passOk && confirmOk && agree.checked;
+      authAction.classList.toggle('bg-charcoal', ok);
+      authAction.classList.toggle('bg-charcoal/30', !ok);
+      authAction.classList.toggle('cursor-not-allowed', !ok);
+    }
+    [authUsername, authPassword, authConfirm].forEach(el => el && el.addEventListener('input', validateAuth));
+    agree.addEventListener('change', validateAuth);
+    $('#tabLogin').addEventListener('click', () => setAuthMode('login'));
+    $('#tabRegister').addEventListener('click', () => setAuthMode('register'));
+
+    authAction.addEventListener('click', async () => {
+      loginError.classList.add('hidden');
+      const username = authUsername.value.trim();
+      const password = authPassword.value;
+      const confirm = authConfirm.value;
+      if (!validateUsername(username)) { showAuthError('用户名需 2-20 个字符'); return; }
+      if (!validatePassword(password)) { showAuthError('密码至少 8 位，需同时包含字母和数字'); return; }
+      if (authMode === 'register' && password !== confirm) { showAuthError('两次输入的密码不一致'); return; }
+      if (!agree.checked) { showAuthError('请同意用户协议与隐私政策'); return; }
+      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      try {
+        const data = await api(endpoint, { method: 'POST', body: JSON.stringify({ username, password }) });
+        setToken(data.token);
+        if (authMode === 'register') {
+          ARCHIVES = [];
+          track('register_success', { username, method: 'password' });
+          showNicknameSetup(username, 'password', 'NEW');
         } else {
-          getCode.textContent = `${sec}s`;
+          const me = await api('/api/user/me');
+          routeUser(me.user, 'password');
         }
-      }, 1000);
-      showToast('验证码已发送');
+      } catch (err) {
+        showAuthError(err.message || '请求失败，请稍后重试');
+      }
     });
-    function handleLoginResult(phoneNum, method) {
-      track('login_method_click', { method });
-      let acc = accountStore.get();
-      const now = Date.now();
-      if (acc && acc.phone === phoneNum) {
-        if (acc.status === 'cooling') {
-          const until = new Date(acc.coolingUntil).getTime();
-          if (now < until) {
-            if (confirm('账号正在注销冷静期，登录将撤销注销并恢复数据')) {
-              acc.status = 'active';
-              acc.userStatus = 'ACTIVE';
-              delete acc.coolingUntil;
-              accountStore.set(acc);
-              track('login_direct_success', { phone: phoneNum, method, restored: true });
-              showToast('账号已恢复');
-              goToApp(true);
-            }
-            return;
-          } else {
-            accountStore.clear();
-            acc = null;
+
+    $('#wechatLogin').addEventListener('click', async () => {
+      if (!agree.checked) { showToast('请先同意用户协议'); return; }
+      track('login_method_click', { method: 'wechat' });
+      try {
+        const data = await api('/api/auth/wechat');
+        window.location.href = data.url;
+      } catch (err) {
+        showAuthError(err.message || '微信登录失败，请稍后重试');
+      }
+    });
+
+    async function routeUser(user, method = 'auto') {
+      accountStore.set({ token: getToken(), user });
+      state.nickname = user.nickname || user.username || state.nickname;
+      updateUserInfo();
+      if (user.cooling) {
+        if (confirm('账号正在注销冷静期，登录将撤销注销并恢复数据')) {
+          try {
+            await api('/api/user/cancel-delete', { method: 'POST' });
+            accountStore.set({ token: getToken(), user: { ...user, cooling: false, coolingUntil: null } });
+            showToast('账号已恢复');
+            goToApp(true);
+          } catch (err) {
+            showToast(err.message || '恢复失败');
           }
         }
-        if (acc && acc.status === 'active') {
-          acc.userStatus = 'ACTIVE';
-          accountStore.set(acc);
-          track('login_direct_success', { phone: phoneNum, method });
-          goToApp(true);
-          return;
-        }
-      }
-      // Determine if re-engaged: existing cooling account whose date expired
-      const isReengaged = acc && acc.phone === phoneNum && acc.status === 'cooling' && new Date(acc.coolingUntil).getTime() <= now;
-      const userStatus = isReengaged ? 'REENGAGED' : 'NEW';
-      if (isReengaged) {
-        clearAllStorage();
-        track('login_reengaged_start', { phone: phoneNum, method });
-        $('#reengagedPrivacy').dataset.phone = phoneNum;
-        $('#reengagedPrivacy').dataset.method = method;
-        $('#reengagedPrivacy').classList.remove('hidden');
         return;
       }
-      ARCHIVES = [];
-      track('register_start', { phone: phoneNum, method });
-      showNicknameSetup(phoneNum, method, 'NEW');
+      if (user.userStatus === 'ACTIVE') {
+        track('login_direct_success', { method });
+        goToApp(true);
+      } else if (user.userStatus === 'NEW') {
+        ARCHIVES = [];
+        track('register_start', { username: user.username || user.phone, method });
+        showNicknameSetup(user.username || user.phone || 'unknown', method, 'NEW');
+      } else if (user.userStatus === 'REENGAGED') {
+        ARCHIVES = [];
+        track('login_reengaged_start', { username: user.username || user.phone, method });
+        $('#reengagedPrivacy').dataset.phone = user.username || user.phone || 'unknown';
+        $('#reengagedPrivacy').dataset.method = method;
+        $('#reengagedPrivacy').classList.remove('hidden');
+      }
     }
+
     function showNicknameSetup(phoneNum, method, userStatus) {
       $('#nicknameSetup').dataset.phone = phoneNum;
       $('#nicknameSetup').dataset.method = method;
       $('#nicknameSetup').dataset.userStatus = userStatus;
+      nickInput.value = '';
+      setNickHint('', '支持中文、英文、数字');
+      nickDuplicate = false;
+      updateNickBtn();
       showPage('nicknameSetup');
     }
-    loginAction.addEventListener('click', () => {
-      if (!validatePhone(phone.value) || !validateCode(code.value) || !agree.checked) return;
-      if (code.value !== '123456' && Math.random() > 0.7) {
-        code.classList.add('shake', 'border-red-400');
-        codeError.classList.remove('hidden');
-        setTimeout(() => code.classList.remove('shake'), 350);
-        return;
-      }
-      handleLoginResult(phone.value, 'phone');
-    });
-    $('#wechatLogin').addEventListener('click', () => {
-      if (!agree.checked) { showToast('请先同意用户协议'); return; }
-      track('login_method_click', { method: 'wechat' });
-      if (Math.random() > 0.5) {
-        phoneForm.classList.remove('hidden');
-        showPhoneForm.classList.add('hidden');
-        hidePhoneForm.classList.remove('hidden');
-        $('#wechatLogin').classList.add('hidden');
-        showToast('微信授权失败，请切换手机号登录');
-        return;
-      }
-      handleLoginResult('wx_' + Date.now(), 'wechat');
-    });
+
     $('#loginBack').addEventListener('click', () => {
       $('#login').classList.add('hidden');
       hideAllLifecyclePages();
       $('#splash').classList.remove('hidden');
     });
+
+    setAuthMode('login');
 
     // Nickname setup
     const nickInput = $('#nickInput'), nickHint = $('#nickHint'), nickAgree = $('#nickAgree'), nickStart = $('#nickStart');
@@ -2083,28 +2127,31 @@
       updateNickBtn();
     });
     nickAgree.addEventListener('change', updateNickBtn);
-    nickStart.addEventListener('click', () => {
+    nickStart.addEventListener('click', async () => {
       const nick = nickInput.value.trim();
       if (!validateNickname(nick) || nickDuplicate || !nickAgree.checked) return;
       const phoneNum = $('#nicknameSetup').dataset.phone || 'unknown';
       const method = $('#nicknameSetup').dataset.method || 'unknown';
       const userStatus = $('#nicknameSetup').dataset.userStatus || 'NEW';
-      accountStore.set({
-        phone: phoneNum,
-        status: 'active',
-        userStatus: userStatus,
-        profile: { nickname: nick },
-        createdAt: new Date().toISOString()
-      });
-      state.nickname = nick;
-      updateUserInfo();
-      track('register_success', { phone: phoneNum, nickname: nick, userStatus });
-      if (userStatus === 'NEW') {
+      try {
+        let user = null;
+        try { user = (await api('/api/user/me')).user; } catch {}
+        state.nickname = nick;
+        updateUserInfo();
+        if (user) {
+          user.nickname = nick;
+          accountStore.set({ token: getToken(), user });
+        } else {
+          accountStore.set({
+            token: getToken(),
+            user: { username: phoneNum, nickname: nick, status: 'active', userStatus, createdAt: new Date().toISOString() }
+          });
+        }
+        track('register_success', { phone: phoneNum, nickname: nick, userStatus });
         showPage('introSlides');
         setIntroSlide(0);
-      } else {
-        showPage('introSlides');
-        setIntroSlide(0);
+      } catch (err) {
+        showToast(err.message || '保存失败');
       }
     });
     $('#nicknameBack').addEventListener('click', () => {
@@ -2663,6 +2710,7 @@
 
     $('#logoutAccount').addEventListener('click', () => {
       accountStore.clear();
+      clearToken();
       closeSheets();
       $$('.screen').forEach(s => s.classList.add('hidden'));
       $('#splash').classList.remove('hidden');
@@ -2670,17 +2718,21 @@
       $('#onboarding').classList.add('hidden');
       showToast('已退出账号');
     });
-    $('#deleteAccount').addEventListener('click', () => {
+    $('#deleteAccount').addEventListener('click', async () => {
       if (!confirm('注销账号后进入 7 天冷静期，期间登录可恢复数据。确定继续？')) return;
-      const acc = accountStore.get();
-      if (!acc) { showToast('当前未登录'); return; }
-      const until = new Date();
-      until.setDate(until.getDate() + 7);
-      acc.status = 'cooling';
-      acc.coolingUntil = until.toISOString();
-      accountStore.set(acc);
-      closeSheets();
-      showToast('账号已申请注销，7 天冷静期内登录可恢复');
+      try {
+        await api('/api/user/delete', { method: 'POST' });
+        accountStore.clear();
+        clearToken();
+        closeSheets();
+        $$('.screen').forEach(s => s.classList.add('hidden'));
+        $('#splash').classList.remove('hidden');
+        $('#login').classList.add('hidden');
+        $('#onboarding').classList.add('hidden');
+        showToast('账号已申请注销');
+      } catch (err) {
+        showToast(err.message || '注销失败');
+      }
     });
   </script>
 </body>
