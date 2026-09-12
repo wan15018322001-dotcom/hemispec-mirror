@@ -165,6 +165,217 @@
     .register-panel.open { top: 10%; }
     .ob-step { display: none; }
     .ob-step.active { display: block; animation: fade-in 0.4s ease both; }
+
+    /* Lifecycle flow pages */
+    .lifecycle-page {
+      position: absolute;
+      inset: 0;
+      z-index: 32;
+      display: flex;
+      flex-direction: column;
+      background: #FAFCFB;
+    }
+    .lifecycle-page.hidden { display: none; }
+
+    /* Nickname setup */
+    .nickname-hint { transition: color 150ms ease; }
+    .nickname-hint.ok { color: #07C160; }
+    .nickname-hint.err { color: #ef4444; }
+
+    /* Intro slides */
+    .intro-track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .intro-card {
+      min-width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .intro-emoji {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(212,232,224,0.6), rgba(200,197,230,0.5));
+      display: grid;
+      place-items: center;
+      font-size: 64px;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-soft);
+    }
+    .intro-dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    .intro-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(74, 74, 74, 0.15);
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .intro-dot.active { background: var(--charcoal); transform: scale(1.2); }
+
+    /* Reengaged privacy */
+    .reengaged-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 45;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .reengaged-backdrop.hidden { display: none; }
+    .reengaged-modal {
+      width: 100%;
+      max-width: 320px;
+      background: #FAFCFB;
+      border-radius: 28px;
+      padding: 1.75rem;
+      box-shadow: var(--shadow-medium);
+    }
+
+    /* Empty state */
+    .empty-state { display: none; }
+    .empty-state.active { display: block; animation: fade-in 0.4s ease both; }
+    .empty-illustration {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(212,232,224,0.5), rgba(200,197,230,0.35));
+      display: grid;
+      place-items: center;
+      font-size: 52px;
+      margin: 0 auto;
+    }
+
+    /* Notification panel */
+    .notification-panel {
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      z-index: 50;
+      background: rgba(250, 252, 251, 0.98);
+      backdrop-filter: blur(14px);
+      border-radius: 0 0 28px 28px;
+      box-shadow: var(--shadow-medium);
+      transform: translateY(-110%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      max-height: 70%;
+      display: flex;
+      flex-direction: column;
+    }
+    .notification-panel.open { transform: translateY(0); }
+    .notification-panel .panel-header {
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(74, 74, 74, 0.08);
+    }
+    .notification-panel .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem 1rem 1.5rem;
+    }
+
+    /* Pull-to-refresh / load-more */
+    .ptr-indicator {
+      position: absolute;
+      top: -48px;
+      left: 0;
+      right: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--noise);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+    .ptr-indicator.visible { opacity: 1; }
+    .load-more {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      color: var(--noise);
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .load-more.visible { opacity: 1; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(74, 74, 74, 0.15);
+      border-top-color: var(--charcoal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Sealing animation */
+    .sealing-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      background: rgba(250, 252, 251, 0.92);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .sealing-overlay.active { opacity: 1; pointer-events: auto; }
+    .sealing-capsule {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--mint), var(--lilac));
+      box-shadow: 0 0 0 rgba(212, 232, 224, 0);
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      transform: scale(1);
+      transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.8s ease;
+    }
+    .sealing-overlay.active .sealing-capsule {
+      transform: scale(0.35);
+      box-shadow: 0 0 40px 10px rgba(200, 197, 230, 0.55);
+    }
+
+    /* Data load fallback */
+    .data-fallback {
+      position: absolute;
+      inset: 0;
+      z-index: 55;
+      background: #FAFCFB;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .data-fallback.hidden { display: none; }
   </style>
 </head>
 <body class="min-h-screen" style="background: linear-gradient(180deg, #FAFCFB 0%, #F5F7F6 50%, #EFEEF5 100%);">
@@ -201,86 +412,123 @@
           </div>
 
           <div class="flex-1 overflow-y-auto hide-scroll px-7 pt-6 pb-8 flex flex-col">
-            <div class="mb-8">
-              <h2 class="text-[30px] font-light leading-tight tracking-tight">欢迎回来</h2>
-              <p class="text-charcoal/55 mt-2 leading-relaxed">思维把上一段自己，轻轻推了回来。</p>
+            <div class="mb-10">
+              <p class="text-xs font-mono text-charcoal/45 tracking-[0.2em] mb-3">HEMISPEC</p>
+              <h2 id="loginHeadline" class="text-[30px] font-light leading-tight tracking-tight">你好</h2>
+              <p id="loginSubhead" class="text-charcoal/55 mt-2 leading-relaxed">欢迎来到半镜。</p>
             </div>
 
-            <div class="space-y-5">
-              <div>
-                <label class="block text-[13px] text-charcoal/70 mb-2">手机号</label>
-                <input id="phone" type="tel" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="请输入手机号" maxlength="11" />
-              </div>
-
-              <div>
-                <label class="block text-[13px] text-charcoal/70 mb-2">验证码</label>
-                <div class="flex gap-3">
-                  <input id="code" type="tel" class="login-input flex-1 h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="6位验证码" maxlength="6" />
-                  <button id="getCode" class="shrink-0 h-11 px-4 rounded-[10px] glass text-[13px] font-medium transition hover:bg-white/80">获取验证码</button>
-                </div>
-                <p id="codeError" class="text-xs text-red-500 mt-2 hidden">验证码错误，请重试</p>
-              </div>
-            </div>
-
-            <div class="mt-8 space-y-3">
-              <button id="loginAction" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">登录</button>
-              <div class="relative flex items-center justify-center py-2">
-                <div class="absolute inset-x-0 h-px bg-charcoal/10"></div>
-                <span class="relative px-3 bg-bg-primary text-xs text-noise-grey">或</span>
-              </div>
+            <div class="mt-auto space-y-4">
               <button id="wechatLogin" class="w-full h-12 rounded-full bg-[#07C160] text-white font-medium text-[15px] transition hover:shadow-medium flex items-center justify-center gap-2">
                 <span class="w-5 h-5 rounded-full bg-white/25 grid place-items-center text-xs">微</span>
                 微信一键登录
               </button>
-              <button id="switchToPhone" class="hidden w-full h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">切换手机号登录</button>
+
+              <div id="phoneForm" class="hidden space-y-4">
+                <div>
+                  <label class="block text-[13px] text-charcoal/70 mb-2">手机号</label>
+                  <input id="phone" type="tel" class="login-input w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="请输入手机号" maxlength="11" />
+                </div>
+                <div>
+                  <label class="block text-[13px] text-charcoal/70 mb-2">验证码</label>
+                  <div class="flex gap-3">
+                    <input id="code" type="tel" class="login-input flex-1 h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="6位验证码" maxlength="6" />
+                    <button id="getCode" class="shrink-0 h-11 px-4 rounded-[10px] glass text-[13px] font-medium transition hover:bg-white/80">获取验证码</button>
+                  </div>
+                  <p id="codeError" class="text-xs text-red-500 mt-2 hidden">验证码错误，请重试</p>
+                </div>
+                <button id="loginAction" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">登录</button>
+              </div>
+
+              <button id="showPhoneForm" class="w-full h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">
+                手机号登录
+              </button>
+
+              <button id="hidePhoneForm" class="hidden w-full h-11 rounded-full glass text-charcoal/70 font-medium text-sm transition hover:bg-white/80">
+                返回微信登录
+              </button>
             </div>
 
-            <div class="mt-auto pt-8">
+            <div class="mt-6">
               <label class="flex items-start gap-2 cursor-pointer">
                 <input id="agree" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
                 <span class="text-xs text-charcoal/50 leading-relaxed">登录即代表同意《用户协议》与《隐私政策》</span>
               </label>
             </div>
           </div>
+        </div>
 
-          <!-- Register panel -->
-          <div id="registerPanel" class="register-panel px-7 pt-6 pb-8">
-            <span class="w-10 h-1 rounded-full bg-charcoal/15 mx-auto absolute left-1/2 -translate-x-1/2 top-2"></span>
-            <p class="text-xs text-noise-grey text-center">检测到您是第一次来到 半镜 Hemispec</p>
-            <h3 class="text-[24px] font-light tracking-tight mt-1 text-center">创建账号</h3>
-            <input type="hidden" id="regPhone" />
-
-            <div class="flex-1 overflow-y-auto hide-scroll mt-6 space-y-4">
-              <div>
-                <p class="text-[13px] text-charcoal/60 mb-2">昵称 <span class="text-noise-grey">*</span></p>
-                <input id="regNickname" class="w-full h-11 rounded-[10px] bg-bg-secondary px-4 text-[15px] border border-charcoal/20 focus:border-charcoal/60 transition bg-transparent" placeholder="2-12 个字符" maxlength="12" />
-                <p id="regNicknameHint" class="text-xs text-noise-grey mt-1">支持中文、英文、数字</p>
-              </div>
-              <div>
-                <p class="text-[13px] text-charcoal/60 mb-2">性别</p>
-                <div class="flex flex-wrap gap-2" id="regGender">
-                  <button class="tag reg-gender" data-val="保密">保密</button>
-                  <button class="tag reg-gender" data-val="男">男</button>
-                  <button class="tag reg-gender" data-val="女">女</button>
-                </div>
-              </div>
-              <div>
-                <p class="text-[13px] text-charcoal/60 mb-2">年龄段</p>
-                <div class="flex flex-wrap gap-2" id="regAge">
-                  <button class="tag reg-age" data-val="保密">保密</button>
-                  <button class="tag reg-age" data-val="18-25">18-25</button>
-                  <button class="tag reg-age" data-val="26-35">26-35</button>
-                  <button class="tag reg-age" data-val="36-45">36-45</button>
-                  <button class="tag reg-age" data-val="46+">46+</button>
-                </div>
-              </div>
-              <label class="flex items-start gap-2 cursor-pointer">
-                <input id="regAgree" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
-                <span class="text-xs text-charcoal/50 leading-relaxed">已阅读并同意《隐私政策》（注销后需重新授权）</span>
-              </label>
+        <!-- Nickname setup -->
+        <div id="nicknameSetup" class="lifecycle-page hidden">
+          <div class="px-6 pt-7 pb-2 flex items-center justify-between shrink-0">
+            <button id="nicknameBack" class="w-9 h-9 rounded-full glass grid place-items-center text-charcoal text-lg transition hover:bg-white/80">←</button>
+            <p class="text-[15px] font-medium tracking-tight">半镜 Hemispec</p>
+            <div class="w-9"></div>
+          </div>
+          <div class="flex-1 px-7 pt-6 pb-8 flex flex-col">
+            <div class="mb-10">
+              <p class="text-xs font-mono text-charcoal/45 tracking-[0.2em] mb-3">HEMISPEC</p>
+              <h2 class="text-[28px] font-light leading-tight tracking-tight">你好，给自己取个名字吧</h2>
             </div>
+            <div class="space-y-4">
+              <input id="nickInput" type="text" class="w-full h-14 rounded-2xl glass px-4 text-[18px] text-center font-medium bg-transparent" placeholder="2-12个字符" maxlength="12" />
+              <p id="nickHint" class="text-xs text-center nickname-hint">支持中文、英文、数字</p>
+            </div>
+            <div class="mt-auto pt-8 space-y-4">
+              <label class="flex items-start gap-2 cursor-pointer">
+                <input id="nickAgree" type="checkbox" class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
+                <span class="text-xs text-charcoal/50 leading-relaxed">我已阅读并同意《用户协议》与《隐私政策》</span>
+              </label>
+              <button id="nickStart" class="w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">开始</button>
+            </div>
+          </div>
+        </div>
 
-            <button id="regSubmit" class="mt-4 w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">创建账号</button>
+        <!-- Re-engaged user forced privacy -->
+        <div id="reengagedPrivacy" class="reengaged-backdrop hidden">
+          <div class="reengaged-modal">
+            <h3 class="text-[22px] font-light tracking-tight">我们重视你的隐私</h3>
+            <p class="text-[14px] text-charcoal/65 mt-3 leading-relaxed">请重新阅读并确认我们的隐私政策。</p>
+            <button id="reengagedPolicyLink" class="mt-2 text-[14px] text-charcoal underline underline-offset-2">《隐私政策》</button>
+            <label class="flex items-start gap-2 cursor-pointer mt-5">
+              <input id="reengagedAgree" type="checkbox" class="mt-0.5 w-4 h-4 rounded border-charcoal/20 text-charcoal focus:ring-charcoal/20" />
+              <span class="text-[13px] text-charcoal/70 leading-relaxed">我已阅读并同意</span>
+            </label>
+            <button id="reengagedContinue" class="mt-5 w-full h-12 rounded-full bg-charcoal/30 text-white font-medium text-[15px] cursor-not-allowed transition">继续</button>
+          </div>
+        </div>
+
+        <!-- 3-page intro slides -->
+        <div id="introSlides" class="lifecycle-page hidden">
+          <div class="px-6 pt-7 pb-2 flex items-center justify-between shrink-0">
+            <button id="introSkip" class="text-[14px] text-noise-grey hover:text-charcoal transition">跳过</button>
+            <p class="text-[15px] font-medium tracking-tight">半镜 Hemispec</p>
+            <div class="w-9"></div>
+          </div>
+          <div class="flex-1 overflow-hidden relative">
+            <div id="introTrack" class="intro-track">
+              <div class="intro-card">
+                <div class="intro-emoji">📝</div>
+                <h3 class="text-[26px] font-light tracking-tight">记录你自己</h3>
+                <p class="text-charcoal/55 mt-3 leading-relaxed">把不同阶段的自己存档</p>
+              </div>
+              <div class="intro-card">
+                <div class="intro-emoji">🪞</div>
+                <h3 class="text-[26px] font-light tracking-tight">听见不同的声音</h3>
+                <p class="text-charcoal/55 mt-3 leading-relaxed">和完全不同的人交换问题</p>
+              </div>
+              <div class="intro-card">
+                <div class="intro-emoji">⏳</div>
+                <h3 class="text-[26px] font-light tracking-tight">时间会替你保管</h3>
+                <p class="text-charcoal/55 mt-3 leading-relaxed">未来的某一天，把上一段自己推回来</p>
+                <button id="introStart" class="btn-primary mt-10 w-[220px] h-12 text-base">写下你的第一封时光胶囊</button>
+              </div>
+            </div>
+          </div>
+          <div class="intro-dots" id="introDots">
+            <span class="intro-dot active"></span>
+            <span class="intro-dot"></span>
+            <span class="intro-dot"></span>
           </div>
         </div>
 
@@ -294,7 +542,7 @@
 
             <div class="ob-step active" data-step="0">
               <p class="text-xs font-mono text-noise-grey mb-4">01 / 09</p>
-              <h2 class="text-[30px] font-light leading-tight tracking-tight">欢迎来到半镜</h2>
+              <h2 class="text-[30px] font-light leading-tight tracking-tight">你好</h2>
               <p class="text-charcoal/55 mt-3 leading-relaxed">你来到这里，最想做什么？</p>
               <div class="mt-10 space-y-3">
                 <button class="mot w-full text-left rounded-2xl glass p-4 transition hover:bg-white/80" data-mot="A"><p class="font-medium text-[15px]">记录自己</p><p class="text-[13px] text-charcoal/50 mt-1">把不同阶段的自己存档</p></button>
@@ -438,7 +686,7 @@
           <div class="flex items-center gap-3">
             <button id="msgBell" class="relative w-10 h-10 rounded-full glass grid place-items-center text-charcoal transition hover:bg-white/80">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 5a6 6 0 0 1 6 6v2a4 4 0 0 0 1.2 2.8l.8.8H4l.8-.8A4 4 0 0 0 6 13v-2a6 6 0 0 1 6-6Z" stroke="currentColor" stroke-width="1.6"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-              <span class="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-lilac ring-2 ring-white"></span>
+              <span id="bellDot" class="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white hidden"></span>
             </button>
           </div>
         </div>
@@ -448,6 +696,33 @@
 
           <!-- Time Capsule -->
           <section id="screen-capsule" class="screen space-y-6">
+            <div id="ptrIndicator" class="ptr-indicator"><span class="spinner mr-2"></span>正在刷新…</div>
+
+            <!-- Empty state for new/re-engaged users -->
+            <div id="capsuleEmpty" class="empty-state">
+              <div class="flex flex-col items-center text-center pt-6 pb-4">
+                <div class="flex items-center gap-3 mb-6">
+                  <div id="emptyAvatar" class="w-12 h-12 rounded-full aurora-bg grid place-items-center text-charcoal font-medium text-lg ring-2 ring-white">林</div>
+                  <p class="text-[20px] font-light tracking-tight">你好，<span id="emptyName">小林</span></p>
+                </div>
+                <div class="empty-illustration">✦</div>
+                <p class="text-[17px] font-light tracking-tight mt-6">你的第一封胶囊已封存</p>
+                <p class="text-charcoal/55 mt-2 leading-relaxed">时间会替你保管。</p>
+                <div class="grid grid-cols-2 gap-3 w-full mt-8">
+                  <button id="emptyWriteMore" class="rounded-2xl glass p-4 text-left transition hover:bg-white/80">
+                    <p class="text-[15px] font-medium">再写一封</p>
+                    <p class="text-[12px] text-charcoal/50 mt-1">继续记录此刻</p>
+                  </button>
+                  <button id="emptyGoMirror" class="rounded-2xl glass p-4 text-left transition hover:bg-white/80">
+                    <p class="text-[15px] font-medium">去镜像对话</p>
+                    <p class="text-[12px] text-charcoal/50 mt-1">和不同的人交换问题</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Normal home content -->
+            <div id="capsuleHome" class="space-y-6">
 
             <div class="rounded-[24px] flow-aurora p-6 relative overflow-hidden shadow-soft border border-charcoal/10">
               <div class="absolute inset-0 grain"></div>
@@ -518,6 +793,9 @@
               <p class="text-[16px] leading-relaxed">“3 月的你还在焦虑上岸，现在回头看，那场考试还重要吗？”</p>
               <p id="relayAnswer" class="hidden mt-4 pt-4 border-t border-charcoal/10 text-[15px] text-charcoal/70 leading-relaxed"></p>
               <button id="relay" class="btn-soft mt-5 text-sm">现在的你回答</button>
+            </div>
+
+            <div id="loadMore" class="load-more"><span class="spinner"></span>加载中…</div>
             </div>
           </section>
 
@@ -669,6 +947,46 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Notification panel -->
+        <div id="notificationPanel" class="notification-panel">
+          <div class="panel-header">
+            <p class="text-[17px] font-medium">消息</p>
+            <button id="closeNotificationPanel" class="w-8 h-8 rounded-full bg-charcoal/5 grid place-items-center text-charcoal/50 transition hover:bg-charcoal/10">✕</button>
+          </div>
+          <div class="panel-body space-y-3" id="notificationList">
+            <div class="notification-item rounded-[20px] glass p-4 flex gap-3 shadow-sm cursor-pointer hover:bg-white/70 transition" data-type="mirror">
+              <div class="w-10 h-10 rounded-full aurora-bg grid place-items-center shrink-0 text-charcoal">✓</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[14px] font-medium">你的问题收到了一个回答</p>
+                <p class="text-xs text-charcoal/50 mt-0.5">来自一位完全不同的人</p>
+                <p class="text-[10px] text-noise-grey mt-1">今天 09:12</p>
+              </div>
+            </div>
+            <div class="notification-item rounded-[20px] glass p-4 flex gap-3 shadow-sm cursor-pointer hover:bg-white/70 transition" data-type="capsule">
+              <div class="w-10 h-10 rounded-full bg-mint/50 grid place-items-center shrink-0 text-charcoal">◷</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-[14px] font-medium">你的时光胶囊即将到期</p>
+                <p class="text-xs text-charcoal/50 mt-0.5">点击查看详情</p>
+                <p class="text-[10px] text-noise-grey mt-1">昨天 18:05</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data load fallback -->
+        <div id="dataFallback" class="data-fallback hidden">
+          <div class="w-20 h-20 rounded-full aurora-bg grid place-items-center text-3xl mb-6">✦</div>
+          <h3 class="text-[22px] font-light tracking-tight">时光胶囊正在整理中…</h3>
+          <p class="text-sm text-charcoal/55 mt-2 leading-relaxed">请稍后再试</p>
+          <button id="dataFallbackRetry" class="btn-soft mt-6">重试</button>
+        </div>
+
+        <!-- Sealing animation overlay -->
+        <div id="sealingOverlay" class="sealing-overlay">
+          <div class="sealing-capsule">✦</div>
+          <p class="text-[15px] text-charcoal/60 mt-6">正在封存…</p>
         </div>
 
         <!-- Composer sheet -->
@@ -1056,6 +1374,65 @@
     }
     tabs.forEach(t => t.addEventListener('click', () => showScreen(t.dataset.tab)));
 
+    // Pull-to-refresh & load-more on capsule screen
+    let ptrStartY = 0, ptrPulling = false, ptrLoading = false;
+    const scroller = $('#scroller');
+    scroller.addEventListener('touchstart', (e) => {
+      if (currentTab !== 'capsule' || ptrLoading) return;
+      ptrStartY = e.touches[0].clientY;
+      ptrPulling = scroller.scrollTop <= 0;
+    }, { passive: true });
+    scroller.addEventListener('touchmove', (e) => {
+      if (!ptrPulling || currentTab !== 'capsule' || ptrLoading) return;
+      const dy = e.touches[0].clientY - ptrStartY;
+      if (dy > 60 && scroller.scrollTop <= 0) {
+        $('#ptrIndicator').classList.add('visible');
+      }
+    }, { passive: true });
+    scroller.addEventListener('touchend', () => {
+      if (!ptrPulling || currentTab !== 'capsule' || ptrLoading) return;
+      const indicator = $('#ptrIndicator');
+      if (indicator.classList.contains('visible')) {
+        ptrLoading = true;
+        setTimeout(() => {
+          indicator.classList.remove('visible');
+          ptrLoading = false;
+          showToast('已刷新');
+        }, 1200);
+      }
+      ptrPulling = false;
+    });
+    let loadMoreLoading = false;
+    scroller.addEventListener('scroll', () => {
+      if (currentTab !== 'capsule' || loadMoreLoading) return;
+      const nearBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 60;
+      if (nearBottom && $('#capsuleHome').classList.contains('hidden') === false) {
+        loadMoreLoading = true;
+        $('#loadMore').classList.add('visible');
+        setTimeout(() => {
+          $('#loadMore').classList.remove('visible');
+          loadMoreLoading = false;
+        }, 1200);
+      }
+    });
+
+    // Active user data loading fallback
+    function loadActiveData() {
+      const acc = accountStore.get();
+      if (!acc || acc.userStatus !== 'ACTIVE') { renderHomeState(); return; }
+      $('#dataFallback').classList.add('hidden');
+      $('#ptrIndicator').classList.add('visible');
+      setTimeout(() => {
+        $('#ptrIndicator').classList.remove('visible');
+        if (Math.random() > 0.95) {
+          $('#dataFallback').classList.remove('hidden');
+        } else {
+          renderHomeState();
+        }
+      }, 800);
+    }
+    $('#dataFallbackRetry').addEventListener('click', loadActiveData);
+
     // 弹层
     const scrim = $('#scrim');
     const SHEETS = ['composer', 'editor', 'relaySheet', 'archiveSheet', 'questionSheet', 'myQuestionsSheet', 'updateArchiveSheet', 'ratingSheet', 'guideSheet', 'settingsSheet', 'policySheet'];
@@ -1183,6 +1560,9 @@
       $('#archiveBrand').value = '';
       $('#archiveCreator').value = '';
       $('#archiveCustom').value = '';
+      $('#updateArchiveSheet').dataset.firstCapsule = '';
+      $('#updateArchiveSheet .text-[17px]').textContent = '更新档案';
+      $('#archiveSubmit').textContent = '保存档案';
       updateArchiveSubmit();
     }
     function updateArchiveSubmit() {
@@ -1196,7 +1576,7 @@
       $('#' + id).addEventListener('input', updateArchiveSubmit);
     });
     $('#archivePhotoUpload').addEventListener('click', () => showToast('照片上传为演示占位'));
-    $('#archiveSubmit').addEventListener('click', () => {
+    function saveArchiveFromSheet() {
       if (!selectedArchiveMood || !$('#archiveBusy').value.trim()) return;
       const date = $('#archiveDate').textContent;
       const moodExtra = $('#archiveMoodExtra').value.trim();
@@ -1220,6 +1600,24 @@
       renderTimeline();
       renderCompare();
       updateArchiveCount();
+    }
+    $('#archiveSubmit').addEventListener('click', () => {
+      if (!selectedArchiveMood || !$('#archiveBusy').value.trim()) return;
+      const isFirst = $('#updateArchiveSheet').dataset.firstCapsule === 'true';
+      if (isFirst) {
+        saveArchiveFromSheet();
+        $('#sealingOverlay').classList.add('active');
+        setTimeout(() => {
+          $('#sealingOverlay').classList.remove('active');
+          closeSheets();
+          $('#onboarding').classList.add('hidden');
+          renderHomeState();
+          goToApp(true);
+          showToast('第一封胶囊已封存');
+        }, 1200);
+        return;
+      }
+      saveArchiveFromSheet();
       closeSheets();
       showToast('档案已更新');
     });
@@ -1238,6 +1636,36 @@
       }).join('');
     }
     renderAnswerHistory();
+
+    // Intro slides
+    let currentIntro = 0;
+    const introTrack = $('#introTrack'), introDots = $$('#introDots .intro-dot');
+    function setIntroSlide(n) {
+      currentIntro = Math.max(0, Math.min(2, n));
+      introTrack.style.transform = 'translateX(' + (-currentIntro * 100) + '%)';
+      introDots.forEach((d, i) => d.classList.toggle('active', i === currentIntro));
+    }
+    introDots.forEach((d, i) => d.addEventListener('click', () => setIntroSlide(i)));
+    let introStartX = 0, introStartY = 0;
+    $('#introTrack').addEventListener('touchstart', (e) => {
+      introStartX = e.touches[0].clientX;
+      introStartY = e.touches[0].clientY;
+    }, { passive: true });
+    $('#introTrack').addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - introStartX;
+      const dy = e.changedTouches[0].clientY - introStartY;
+      if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+      if (dx < 0 && currentIntro < 2) setIntroSlide(currentIntro + 1);
+      if (dx > 0 && currentIntro > 0) setIntroSlide(currentIntro - 1);
+    }, { passive: true });
+    $('#introSkip').addEventListener('click', () => {
+      hideAllLifecyclePages();
+      goToOnboarding();
+    });
+    $('#introStart').addEventListener('click', () => {
+      hideAllLifecyclePages();
+      goToOnboarding();
+    });
 
     // Onboarding
     const TAG_OPTIONS = {
@@ -1276,18 +1704,28 @@
     function renderOb() {
       obSteps.forEach(s => s.classList.toggle('active', +s.dataset.step === obStep));
       $('#obBack').classList.toggle('hidden', obStep === 0);
-      $('#obNext').textContent = obStep === total - 1 ? '进入半镜' : '下一步';
+      $('#obNext').textContent = obStep === total - 1 ? '封存我的第一封胶囊' : '下一步';
     }
     function finishOb() {
       $('#onboarding').classList.add('hidden');
       $('#onboarding').style.display = '';
-      const nick = $('#obNickname').value.trim() || '小林';
+      const nick = $('#obNickname').value.trim() || state.nickname || '小林';
       state.nickname = nick;
       state.mood = $('.mood.active')?.dataset.mood || '平静';
       state.busy = $('#obBusy').value.trim() || '在准备马拉松比赛';
       state.tags = selectedObTags.length > 0 ? selectedObTags : state.tags;
       updateUserInfo();
+      renderHomeState();
       showToast('欢迎来到半镜 · 问题审核中');
+    }
+    function openFirstCapsuleSheet() {
+      const now = new Date();
+      $('#archiveDate').textContent = now.toISOString().slice(0, 10);
+      resetArchiveForm();
+      $('#updateArchiveSheet .text-[17px]').textContent = '写下你的第一封时光胶囊';
+      $('#archiveSubmit').textContent = '封存';
+      $('#updateArchiveSheet').dataset.firstCapsule = 'true';
+      openSheet('updateArchiveSheet');
     }
     $('#obNext').addEventListener('click', () => {
       if (obStep === 5) {
@@ -1302,7 +1740,7 @@
         renderMyQuestions();
       }
       if (obStep < total - 1) { obStep++; renderOb(); }
-      else finishOb();
+      else openFirstCapsuleSheet();
     });
     $('#obBack').addEventListener('click', () => { if (obStep > 0) { obStep--; renderOb(); } });
     $('#obSkip').addEventListener('click', finishOb);
@@ -1335,15 +1773,45 @@
       $('#profileName').textContent = state.nickname;
       $('#capsuleAvatar').textContent = state.nickname[0];
       $('#profileAvatar').textContent = state.nickname[0];
+      $('#emptyName').textContent = state.nickname;
+      $('#emptyAvatar').textContent = state.nickname[0];
       updateStyleSummary();
     }
+    function renderHomeState() {
+      const acc = accountStore.get();
+      const isNewLike = acc && (acc.userStatus === 'NEW' || acc.userStatus === 'REENGAGED');
+      const empty = isNewLike && ARCHIVES.length === 0;
+      $('#capsuleEmpty').classList.toggle('active', empty);
+      $('#capsuleHome').classList.toggle('hidden', empty);
+      if (!empty) {
+        renderTimeline();
+        renderCompare();
+        updateArchiveCount();
+      }
+    }
+    $('#emptyWriteMore').addEventListener('click', () => {
+      const now = new Date();
+      $('#archiveDate').textContent = now.toISOString().slice(0, 10);
+      resetArchiveForm();
+      openSheet('updateArchiveSheet');
+    });
+    $('#emptyGoMirror').addEventListener('click', () => showScreen('mirror'));
 
     // Splash
+    function adjustLoginHeadline() {
+      const acc = accountStore.get();
+      const now = Date.now();
+      const isReturning = acc && acc.status === 'active' && acc.userStatus === 'ACTIVE';
+      $('#loginHeadline').textContent = isReturning ? '欢迎回来' : '你好';
+      $('#loginSubhead').textContent = isReturning ? '思维把上一段自己，轻轻推了回来。' : '欢迎来到半镜。';
+    }
     $('#enterBtn').addEventListener('click', () => {
       const acc = accountStore.get();
       const now = Date.now();
+      adjustLoginHeadline();
       if (acc && acc.status === 'active') {
-        goToApp();
+        if (!acc.userStatus) { acc.userStatus = 'ACTIVE'; accountStore.set(acc); }
+        goToApp(true);
         return;
       }
       if (acc && acc.status === 'cooling' && new Date(acc.coolingUntil).getTime() > now) {
@@ -1367,13 +1835,83 @@
       set(data) { localStorage.setItem('hemispec_account', JSON.stringify(data)); },
       clear() { localStorage.removeItem('hemispec_account'); }
     };
+    function clearAllStorage() {
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split(';').forEach(c => {
+          const [name] = c.split('=');
+          document.cookie = name.trim() + '=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;';
+        });
+      } catch (e) { console.warn('[clearAllStorage]', e); }
+      ARCHIVES = [];
+      state.nickname = '';
+      state.mood = '';
+      state.busy = '';
+      state.music = '';
+      state.film = '';
+      state.brand = '';
+      state.learn = '';
+      state.tags = [];
+      state.questions = [];
+      state.answerHistory = [];
+      state.relayAnswers = [];
+    }
     function track(event, params = {}) {
+      const acc = accountStore.get();
+      if (acc && acc.userStatus) params.user_type = acc.userStatus;
       console.log('[TRACK]', event, params);
+    }
+
+    // Lifecycle navigation helpers
+    function hideAllLifecyclePages() {
+      $$('.lifecycle-page').forEach(p => p.classList.add('hidden'));
+      $('#reengagedPrivacy').classList.add('hidden');
+    }
+    function showPage(id) {
+      hideAllLifecyclePages();
+      $('#' + id).classList.remove('hidden');
+    }
+    function goToOnboarding() {
+      $('#login').classList.add('hidden');
+      hideAllLifecyclePages();
+      $('#onboarding').classList.remove('hidden');
+      $('#onboarding').style.display = '';
+      obStep = 0; renderOb();
+    }
+    function goToApp(skipAnimation = false) {
+      $('#splash').classList.add('hidden');
+      $('#login').classList.add('hidden');
+      hideAllLifecyclePages();
+      $('#onboarding').classList.add('hidden');
+      $('#onboarding').style.display = '';
+      const capsule = $('#screen-capsule');
+      $$('.screen').forEach(s => s.classList.add('hidden'));
+      capsule.classList.remove('hidden');
+      if (!skipAnimation) capsule.classList.add('fade-in');
+      tabs.forEach(t => {
+        const key = t.dataset.tab;
+        const activeTab = (key === 'capsule');
+        t.classList.toggle('text-charcoal', activeTab);
+        t.classList.toggle('text-noise-grey', !activeTab);
+        t.querySelector('svg').setAttribute('stroke-width', activeTab ? '1.9' : '1.7');
+      });
+      currentTab = 'capsule';
+      $('#scroller').scrollTop = 0;
+      $('#fab').classList.remove('hidden');
+      const acc = accountStore.get();
+      if (acc && acc.userStatus === 'ACTIVE') {
+        setBellDot(true);
+        loadActiveData();
+      } else {
+        setBellDot(false);
+        renderHomeState();
+      }
     }
 
     // Login
     const phone = $('#phone'), code = $('#code'), getCode = $('#getCode'), loginAction = $('#loginAction'), agree = $('#agree');
-    const codeError = $('#codeError'), switchToPhone = $('#switchToPhone');
+    const codeError = $('#codeError'), showPhoneForm = $('#showPhoneForm'), hidePhoneForm = $('#hidePhoneForm'), phoneForm = $('#phoneForm');
     function validatePhone(v) { return /^1[3-9]\d{9}$/.test(v); }
     function validateCode(v) { return /^\d{6}$/.test(v); }
     function updateLoginBtn() {
@@ -1393,6 +1931,18 @@
       updateLoginBtn();
     });
     agree.addEventListener('change', updateLoginBtn);
+    showPhoneForm.addEventListener('click', () => {
+      phoneForm.classList.remove('hidden');
+      showPhoneForm.classList.add('hidden');
+      hidePhoneForm.classList.remove('hidden');
+      $('#wechatLogin').classList.add('hidden');
+    });
+    hidePhoneForm.addEventListener('click', () => {
+      phoneForm.classList.add('hidden');
+      showPhoneForm.classList.remove('hidden');
+      hidePhoneForm.classList.add('hidden');
+      $('#wechatLogin').classList.remove('hidden');
+    });
     let codeTimer = null;
     getCode.addEventListener('click', () => {
       if (!validatePhone(phone.value)) { showToast('请输入正确手机号'); return; }
@@ -1412,21 +1962,6 @@
       }, 1000);
       showToast('验证码已发送');
     });
-    function goToOnboarding() {
-      $('#login').classList.add('hidden');
-      $('#registerPanel').classList.remove('open');
-      $('#onboarding').classList.remove('hidden');
-      $('#onboarding').style.display = '';
-      obStep = 0; renderOb();
-    }
-    function goToApp() {
-      $('#splash').classList.add('hidden');
-      $('#login').classList.add('hidden');
-      $('#registerPanel').classList.remove('open');
-      $('#onboarding').classList.add('hidden');
-      $('#onboarding').style.display = '';
-      showScreen('capsule');
-    }
     function handleLoginResult(phoneNum, method) {
       track('login_method_click', { method });
       let acc = accountStore.get();
@@ -1437,11 +1972,12 @@
           if (now < until) {
             if (confirm('账号正在注销冷静期，登录将撤销注销并恢复数据')) {
               acc.status = 'active';
+              acc.userStatus = 'ACTIVE';
               delete acc.coolingUntil;
               accountStore.set(acc);
               track('login_direct_success', { phone: phoneNum, method, restored: true });
               showToast('账号已恢复');
-              goToApp();
+              goToApp(true);
             }
             return;
           } else {
@@ -1450,20 +1986,33 @@
           }
         }
         if (acc && acc.status === 'active') {
+          acc.userStatus = 'ACTIVE';
+          accountStore.set(acc);
           track('login_direct_success', { phone: phoneNum, method });
-          goToApp();
+          goToApp(true);
           return;
         }
       }
+      // Determine if re-engaged: existing cooling account whose date expired
+      const isReengaged = acc && acc.phone === phoneNum && acc.status === 'cooling' && new Date(acc.coolingUntil).getTime() <= now;
+      const userStatus = isReengaged ? 'REENGAGED' : 'NEW';
+      if (isReengaged) {
+        clearAllStorage();
+        track('login_reengaged_start', { phone: phoneNum, method });
+        $('#reengagedPrivacy').dataset.phone = phoneNum;
+        $('#reengagedPrivacy').dataset.method = method;
+        $('#reengagedPrivacy').classList.remove('hidden');
+        return;
+      }
+      ARCHIVES = [];
       track('register_start', { phone: phoneNum, method });
-      showRegisterPanel(phoneNum);
+      showNicknameSetup(phoneNum, method, 'NEW');
     }
-    function showRegisterPanel(phoneNum) {
-      $('#regPhone').value = phoneNum;
-      $('#registerPanel').classList.add('open');
-    }
-    function hideRegisterPanel() {
-      $('#registerPanel').classList.remove('open');
+    function showNicknameSetup(phoneNum, method, userStatus) {
+      $('#nicknameSetup').dataset.phone = phoneNum;
+      $('#nicknameSetup').dataset.method = method;
+      $('#nicknameSetup').dataset.userStatus = userStatus;
+      showPage('nicknameSetup');
     }
     loginAction.addEventListener('click', () => {
       if (!validatePhone(phone.value) || !validateCode(code.value) || !agree.checked) return;
@@ -1479,69 +2028,107 @@
       if (!agree.checked) { showToast('请先同意用户协议'); return; }
       track('login_method_click', { method: 'wechat' });
       if (Math.random() > 0.5) {
+        phoneForm.classList.remove('hidden');
+        showPhoneForm.classList.add('hidden');
+        hidePhoneForm.classList.remove('hidden');
         $('#wechatLogin').classList.add('hidden');
-        switchToPhone.classList.remove('hidden');
         showToast('微信授权失败，请切换手机号登录');
         return;
       }
       handleLoginResult('wx_' + Date.now(), 'wechat');
     });
-    switchToPhone.addEventListener('click', () => {
-      switchToPhone.classList.add('hidden');
-      $('#wechatLogin').classList.remove('hidden');
-    });
     $('#loginBack').addEventListener('click', () => {
       $('#login').classList.add('hidden');
-      hideRegisterPanel();
+      hideAllLifecyclePages();
       $('#splash').classList.remove('hidden');
     });
 
-    // Register
-    const regNickname = $('#regNickname'), regNicknameHint = $('#regNicknameHint');
-    const regGenderTags = $$('#regGender .reg-gender');
-    const regAgeTags = $$('#regAge .reg-age');
-    let regGender = '保密', regAge = '保密';
-    regGenderTags.forEach(b => b.addEventListener('click', () => {
-      regGenderTags.forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      regGender = b.dataset.val;
-    }));
-    regAgeTags.forEach(b => b.addEventListener('click', () => {
-      regAgeTags.forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      regAge = b.dataset.val;
-    }));
-    regGenderTags[0].classList.add('active');
-    regAgeTags[0].classList.add('active');
-    function updateRegBtn() {
-      const nick = regNickname.value.trim();
-      const ok = nick.length >= 2 && nick.length <= 12 && $('#regAgree').checked;
-      const btn = $('#regSubmit');
-      btn.classList.toggle('bg-charcoal', ok);
-      btn.classList.toggle('bg-charcoal/30', !ok);
-      btn.classList.toggle('cursor-not-allowed', !ok);
-      const invalid = nick.length > 12 || (nick.length > 0 && nick.length < 2);
-      regNicknameHint.textContent = nick.length > 12 ? '昵称需 2-12 个字符' : nick.length > 0 && nick.length < 2 ? '至少 2 个字符' : '支持中文、英文、数字';
-      regNicknameHint.classList.toggle('text-red-500', invalid);
-      regNicknameHint.classList.toggle('text-noise-grey', !invalid);
+    // Nickname setup
+    const nickInput = $('#nickInput'), nickHint = $('#nickHint'), nickAgree = $('#nickAgree'), nickStart = $('#nickStart');
+    let nickDebounce = null, nickDuplicate = false;
+    const COMMON_NAMES = ['小林', '小白', '阿杰', '小美', '小明', '小红', '小李', '小陈', '小林子', '小白白'];
+    function validateNickname(v) {
+      const len = Array.from(v.trim()).length;
+      return len >= 2 && len <= 12;
     }
-    regNickname.addEventListener('input', updateRegBtn);
-    $('#regAgree').addEventListener('change', updateRegBtn);
-    $('#regSubmit').addEventListener('click', () => {
-      const nick = regNickname.value.trim();
-      if (nick.length < 2 || nick.length > 12 || !$('#regAgree').checked) return;
-      const phoneNum = $('#regPhone').value;
+    function updateNickBtn() {
+      const v = nickInput.value.trim();
+      const valid = validateNickname(v) && !nickDuplicate;
+      const ok = valid && nickAgree.checked;
+      nickStart.classList.toggle('bg-charcoal', ok);
+      nickStart.classList.toggle('bg-charcoal/30', !ok);
+      nickStart.classList.toggle('cursor-not-allowed', !ok);
+    }
+    function setNickHint(type, msg) {
+      nickHint.textContent = msg;
+      nickHint.className = 'text-xs text-center nickname-hint ' + type;
+    }
+    nickInput.addEventListener('input', () => {
+      const v = nickInput.value.trim();
+      const len = Array.from(v).length;
+      if (len === 0) { setNickHint('', '支持中文、英文、数字'); nickDuplicate = false; updateNickBtn(); return; }
+      if (len < 2) { setNickHint('err', '至少 2 个字符'); nickDuplicate = false; updateNickBtn(); return; }
+      if (len > 12) { setNickHint('err', '最多 12 个字符'); nickDuplicate = false; updateNickBtn(); return; }
+      setNickHint('', '检测中…');
+      clearTimeout(nickDebounce);
+      nickDebounce = setTimeout(() => {
+        nickDuplicate = COMMON_NAMES.includes(v) && Math.random() > 0.3;
+        if (nickDuplicate) {
+          setNickHint('err', '已被占用');
+        } else {
+          setNickHint('ok', '可以使用');
+        }
+        updateNickBtn();
+      }, 500);
+      updateNickBtn();
+    });
+    nickAgree.addEventListener('change', updateNickBtn);
+    nickStart.addEventListener('click', () => {
+      const nick = nickInput.value.trim();
+      if (!validateNickname(nick) || nickDuplicate || !nickAgree.checked) return;
+      const phoneNum = $('#nicknameSetup').dataset.phone || 'unknown';
+      const method = $('#nicknameSetup').dataset.method || 'unknown';
+      const userStatus = $('#nicknameSetup').dataset.userStatus || 'NEW';
       accountStore.set({
         phone: phoneNum,
         status: 'active',
-        profile: { nickname: nick, gender: regGender, ageGroup: regAge },
+        userStatus: userStatus,
+        profile: { nickname: nick },
         createdAt: new Date().toISOString()
       });
       state.nickname = nick;
       updateUserInfo();
-      track('register_success', { phone: phoneNum, nickname: nick });
-      hideRegisterPanel();
-      goToOnboarding();
+      track('register_success', { phone: phoneNum, nickname: nick, userStatus });
+      if (userStatus === 'NEW') {
+        showPage('introSlides');
+        setIntroSlide(0);
+      } else {
+        showPage('introSlides');
+        setIntroSlide(0);
+      }
+    });
+    $('#nicknameBack').addEventListener('click', () => {
+      hideAllLifecyclePages();
+      $('#login').classList.remove('hidden');
+    });
+
+    // Re-engaged privacy
+    const reengagedAgree = $('#reengagedAgree'), reengagedContinue = $('#reengagedContinue');
+    function updateReengagedBtn() {
+      const ok = reengagedAgree.checked;
+      reengagedContinue.classList.toggle('bg-charcoal', ok);
+      reengagedContinue.classList.toggle('bg-charcoal/30', !ok);
+      reengagedContinue.classList.toggle('cursor-not-allowed', !ok);
+    }
+    reengagedAgree.addEventListener('change', updateReengagedBtn);
+    updateReengagedBtn();
+    $('#reengagedPolicyLink').addEventListener('click', () => openPolicy('隐私政策', PRIVACY_POLICY_TEXT));
+    reengagedContinue.addEventListener('click', () => {
+      if (!reengagedAgree.checked) return;
+      const phoneNum = $('#reengagedPrivacy').dataset.phone || 'unknown';
+      const method = $('#reengagedPrivacy').dataset.method || 'unknown';
+      $('#reengagedPrivacy').classList.add('hidden');
+      showNicknameSetup(phoneNum, method, 'REENGAGED');
     });
 
     // 并排对比
@@ -1805,8 +2392,45 @@
       showToast('已记录');
     });
 
-    // 消息
-    $('#msgBell').addEventListener('click', () => $('#messages').classList.remove('hidden'));
+    // 消息 / 通知面板
+    let bellUnread = false;
+    function setBellDot(show) {
+      bellUnread = show;
+      $('#bellDot').classList.toggle('hidden', !show);
+    }
+    function openNotificationPanel() {
+      $('#notificationPanel').classList.add('open');
+      setBellDot(false);
+    }
+    $('#msgBell').addEventListener('click', openNotificationPanel);
+    $('#closeNotificationPanel').addEventListener('click', () => $('#notificationPanel').classList.remove('open'));
+    $('#notificationList').addEventListener('click', (e) => {
+      const item = e.target.closest('.notification-item');
+      if (!item) return;
+      $('#notificationPanel').classList.remove('open');
+      setBellDot(false);
+      const type = item.dataset.type;
+      if (type === 'mirror') {
+        showScreen('mirror');
+      } else if (type === 'capsule') {
+        showScreen('capsule');
+        if (ARCHIVES.length) {
+          const a = ARCHIVES[ARCHIVES.length - 1];
+          currentArchiveId = a.id;
+          $('#archiveSheetTitle').textContent = a.season + ' 的档案';
+          $('#archiveSheetSeason').textContent = a.season;
+          $('#archiveSheetHeadline').textContent = a.title;
+          $('#archiveSheetMood').textContent = a.mood;
+          $('#archiveSheetBusy').textContent = a.busy;
+          $('#archiveSheetMusic').textContent = a.music;
+          $('#archiveSheetFilm').textContent = a.film;
+          $('#archiveSheetBrand').textContent = a.brand || '—';
+          $('#archiveSheetCreator').textContent = a.creator || '—';
+          $('#archiveSheetCustom').textContent = a.custom || '—';
+          openSheet('archiveSheet');
+        }
+      }
+    });
     $('#msgBack').addEventListener('click', () => $('#messages').classList.add('hidden'));
     function addMessage(title, desc, time) {
       const list = $('#messageList');
@@ -1819,6 +2443,7 @@
           <p class="text-[10px] text-noise-grey mt-1">${time}</p>
         </div>`;
       list.insertBefore(item, list.firstChild);
+      setBellDot(true);
     }
 
     // Settings toggles
