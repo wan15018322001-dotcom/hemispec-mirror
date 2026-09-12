@@ -518,8 +518,8 @@
               <div class="intro-card">
                 <div class="intro-emoji">⏳</div>
                 <h3 class="text-[26px] font-light tracking-tight">时间会替你保管</h3>
-                <p class="text-charcoal/55 mt-3 leading-relaxed">未来的某一天，把上一段自己推回来</p>
-                <button id="introStart" class="btn-primary mt-10 w-[220px] h-12 text-base">写下你的第一封时光胶囊</button>
+                <p class="text-charcoal/55 mt-3 leading-relaxed">未来的你，会收到此刻的回声</p>
+                <button id="introStart" class="btn-primary mt-10 w-[220px] h-12 text-base">开启</button>
               </div>
             </div>
           </div>
@@ -1772,7 +1772,7 @@
       const now = new Date();
       $('#archiveDate').textContent = now.toISOString().slice(0, 10);
       resetArchiveForm();
-      $('#updateArchiveSheet .text-[17px]').textContent = '写下你的第一封时光胶囊';
+      $('#updateArchiveSheet .text-[17px]').textContent = '开启';
       $('#archiveSubmit').textContent = '封存';
       $('#updateArchiveSheet').dataset.firstCapsule = 'true';
       openSheet('updateArchiveSheet');
